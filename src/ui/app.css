@@ -349,3 +349,43 @@ button.danger { color: var(--color-warn); }
 /* 似た商品の知らせ */
 .similar { padding: var(--space-3); border-radius: var(--radius); background: #fff6e5; border: 1px solid #f0d49b; font-size: 14px; }
 .similar ul { margin: var(--space-2) 0 0; padding-left: var(--space-5); }
+
+/* リスト */
+.mode-switch { display: flex; margin-bottom: var(--space-3); }
+.mode-switch button { flex: 1; border-radius: 0; }
+.mode-switch button:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.mode-switch button:last-child { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
+.mode-switch button[aria-pressed='true'] { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-primary-text); }
+.search-trigger { width: 100%; text-align: left; color: var(--color-muted); margin-bottom: var(--space-3); }
+.section-title { font-size: 14px; color: var(--color-muted); margin: var(--space-5) 0 var(--space-2); }
+.item-list { list-style: none; margin: 0; padding: 0; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }
+.item-list:empty { display: none; }
+.item-row { position: relative; border-bottom: 1px solid var(--color-border); }
+.item-row:last-child { border-bottom: none; }
+.item-remove {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 72px; min-height: 0;
+  border: none; border-radius: 0; background: var(--color-warn); color: #fff;
+}
+.item-body { position: relative; display: flex; align-items: flex-start; background: var(--color-surface); transition: transform 0.15s; }
+.item-check {
+  flex: 0 0 auto; width: var(--tap); height: var(--tap); padding: 0; margin: 2px var(--space-1) 0 var(--space-2);
+  border: none; background: transparent; display: flex; align-items: center; justify-content: center;
+}
+.item-check span {
+  width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--color-border);
+  display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff;
+}
+.item-check[aria-pressed='true'] span { background: var(--color-primary); border-color: var(--color-primary); }
+.item-main { flex: 1; min-width: 0; }
+.item-name {
+  width: 100%; min-height: var(--tap); padding: var(--space-2) var(--space-3) var(--space-2) 0; border: none; border-radius: 0;
+  background: transparent; text-align: left; display: flex; flex-direction: column; justify-content: center; overflow-wrap: anywhere;
+}
+.item-memo { font-size: 13px; color: var(--color-muted); }
+.item-row.checked .item-name { color: var(--color-muted); text-decoration: line-through; }
+.item-edit { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: 0 var(--space-3) var(--space-3) 0; }
+.add-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }
+.add-list li + li { border-top: 1px solid var(--color-border); }
+.add-list button { width: 100%; border: none; border-radius: 0; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+.add-list button[aria-pressed='true'] { background: #eef6f1; }
+.add-list .add-new { color: var(--color-primary); font-weight: 600; }
