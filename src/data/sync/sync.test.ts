@@ -3,7 +3,7 @@ import { LocalDb } from '../db.ts';
 import { createRow, patchRow, type MutateContext } from './mutate.ts';
 import { push } from './push.ts';
 import { pull, applyRemoteRow } from './pull.ts';
-import { countStatus } from './engine.ts';
+import { countStatus, makeRunner } from './engine.ts';
 import { FakeRemote } from './fakeRemote.ts';
 import { priceId } from '../../domain/ids.ts';
 import type { ListItem, Price, Store } from '../../domain/types.ts';
@@ -163,5 +163,19 @@ describe('同期', () => {
     await push(dbA, remote);
     await push(dbA, remote);
     expect(await countStatus(dbA)).toEqual({ pending: 0, failed: 1 });
+  });
+
+  test('13. 1回の同期が固まっても、時間が来たら次の同期が動く', async () => {
+    await createRow('stores', store('s1'), ctx(dbA, '10:00'));
+    let hang = true;
+    const realFetchRow = remote.fetchRow.bind(remote);
+    remote.fetchRow = (t, id) => (hang ? new Promise(() => undefined) : realFetchRow(t, id));
+    const run = makeRunner(dbA, remote, 50);
+    await run(); // 固まるが、50ms で手を離す
+    expect(remote.get('stores', 's1')).toBeNull();
+    hang = false;
+    await run();
+    expect(remote.get('stores', 's1')?.name).toBe('A店');
+    expect(await dbA.outbox.count()).toBe(0);
   });
 });

@@ -15,16 +15,30 @@ export async function countStatus(local: LocalDb): Promise<{ pending: number; fa
 
 const INTERVAL_MS = 60_000;
 
-/** 1回分：送ってから読む。同時に2つ動かさない */
-export function makeRunner(local: LocalDb, remote: Remote) {
+/** 1回の同期をこれ以上待たない。iPhone は裏に回ると通信が終わらないまま止まることがある */
+const CYCLE_TIMEOUT_MS = 20_000;
+
+/** 1回分：送ってから読む。同時に2つ動かさない。固まったら時間で手を離し、次を動かせるようにする */
+export function makeRunner(local: LocalDb, remote: Remote, timeoutMs = CYCLE_TIMEOUT_MS) {
   let running: Promise<void> | null = null;
   let again = false;
   const once = async () => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error('同期が時間内に終わりませんでした')), timeoutMs);
+    });
     try {
-      const ok = await push(local, remote);
-      if (ok) await pull(local, remote);
+      await Promise.race([
+        (async () => {
+          const ok = await push(local, remote);
+          if (ok) await pull(local, remote);
+        })(),
+        timeout,
+      ]);
     } catch (err) {
       console.warn('同期に失敗しました', err);
+    } finally {
+      clearTimeout(timer);
     }
   };
   const run = (): Promise<void> => {
