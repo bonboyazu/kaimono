@@ -33,6 +33,10 @@ html, body {
 #root { min-height: 100dvh; }
 
 button, input, select, textarea { font: inherit; }
+/* iPhone は 16px 未満の欄を押すと拡大する。欄は小さい文字の中に置いても 16px にする */
+input, select, textarea { font-size: 16px; }
+/* 2回続けて押したときの拡大を止める */
+html { touch-action: manipulation; }
 
 button {
   min-height: var(--tap);
