@@ -15,7 +15,7 @@ import TabBar from './ui/TabBar.tsx';
 import PullToRefresh from './ui/PullToRefresh.tsx';
 import { refreshApp } from './data/appUpdate.ts';
 
-const refresh = () => void refreshApp();
+const refresh = () => refreshApp();
 
 type Props = { auth?: AuthApi; withSync?: boolean };
 

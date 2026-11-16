@@ -44,9 +44,17 @@ export function makeRunner(local: LocalDb, remote: Remote) {
   return run;
 }
 
+let currentRun: (() => Promise<void>) | null = null;
+
+/** 今すぐ送って読む（引っ張って更新したとき）。同期が動いていなければ何もしない */
+export function syncNow(): Promise<void> {
+  return currentRun?.() ?? Promise.resolve();
+}
+
 /** 止める関数を返す。realtime は subscribe に渡す（ログイン後に supabase と結ぶ） */
 export function startSync(remote: Remote, subscribe?: () => () => void, local: LocalDb = db): () => void {
   const run = makeRunner(local, remote);
+  currentRun = run;
   let timer: ReturnType<typeof setInterval> | null = null;
 
   const startTimer = () => {
@@ -78,6 +86,7 @@ export function startSync(remote: Remote, subscribe?: () => () => void, local: L
     offWrite();
     unsubscribe?.();
     stopTimer();
+    if (currentRun === run) currentRun = null;
   };
 }
 
