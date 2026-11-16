@@ -6,19 +6,27 @@ import Sheet from '../../ui/Sheet.tsx';
 import { addProduct, deleteProduct, updateProduct } from './actions.ts';
 
 /** id がなければ新しく足す */
-export default function ProductEditor({ id, onClose }: { id: string | null; onClose: () => void }) {
+/** onPickExisting：似た商品を押したとき（新しく足すのをやめて、その商品を使う） */
+export default function ProductEditor({ id, onClose, onPickExisting }: {
+  id: string | null; onClose: () => void; onPickExisting?: (id: string) => void;
+}) {
   const product = useRow('products', id ?? undefined);
   if (id && !product) return null;
-  return <ProductForm key={id ?? 'new'} product={product ?? null} onClose={onClose} />;
+  return <ProductForm key={id ?? 'new'} product={product ?? null} onClose={onClose} onPickExisting={onPickExisting} />;
 }
 
-function ProductForm({ product, onClose }: { product: Product | null; onClose: () => void }) {
+function ProductForm({ product, onClose, onPickExisting }: {
+  product: Product | null; onClose: () => void; onPickExisting?: (id: string) => void;
+}) {
   const [name, setName] = useState(product?.name ?? '');
   const [unit, setUnit] = useState<Unit>(product?.unit ?? 'piece');
   const [taxRate, setTaxRate] = useState(product?.tax_rate ?? 8);
   const [error, setError] = useState('');
   const all = useRows('products');
-  const similar = similarNames(name, (all ?? []).filter((p) => p.id !== product?.id).map((p) => p.name));
+  const others = (all ?? []).filter((p) => p.id !== product?.id);
+  const similarSet = new Set(similarNames(name, others.map((p) => p.name)));
+  const similar = others.filter((p) => similarSet.has(p.name)).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  const pickable = !product && onPickExisting;
 
   const save = async () => {
     try {
@@ -47,9 +55,13 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
         </label>
         {similar.length > 0 && (
           <div className="similar" role="note" aria-label="似た商品">
-            <p>似た商品がもうあります。同じものなら、足さずにそちらを使ってください</p>
-            <ul>
-              {similar.slice(0, 10).map((n) => <li key={n}>{n}</li>)}
+            <p>似た商品がもうあります。{pickable ? '同じものなら、押すとその商品の値段を入れられます' : '同じものなら、足さずにそちらを使ってください'}</p>
+            <ul className={pickable ? 'chips' : undefined}>
+              {similar.slice(0, 10).map((p) => (
+                <li key={p.id}>
+                  {pickable ? <button type="button" onClick={() => onPickExisting(p.id)}>{p.name}</button> : p.name}
+                </li>
+              ))}
             </ul>
             {similar.length > 10 && <p className="note">ほか {similar.length - 10} 件</p>}
           </div>

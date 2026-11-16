@@ -91,7 +91,13 @@ export default function DataPage() {
           onEditStore={(id) => setOpen({ kind: 'store', id })}
         />
       )}
-      {open?.kind === 'product' && <ProductEditor id={open.id} onClose={close} />}
+      {open?.kind === 'product' && (
+        <ProductEditor
+          id={open.id}
+          onClose={close}
+          onPickExisting={(id) => setOpen({ kind: 'price', storeId: storeId || null, productId: id })}
+        />
+      )}
       {open?.kind === 'store' && <StoreEditor id={open.id} onClose={close} />}
     </>
   );

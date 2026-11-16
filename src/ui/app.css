@@ -349,3 +349,5 @@ button.danger { color: var(--color-warn); }
 /* 似た商品の知らせ */
 .similar { padding: var(--space-3); border-radius: var(--radius); background: #fff6e5; border: 1px solid #f0d49b; font-size: 14px; }
 .similar ul { margin: var(--space-2) 0 0; padding-left: var(--space-5); }
+.similar ul.chips { padding: 0; list-style: none; }
+.similar .chips button { background: var(--color-surface); }
