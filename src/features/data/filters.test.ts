@@ -31,9 +31,11 @@ describe('buildDataRows', () => {
     expect(rows.map(key)).toEqual(['ぎゅうにゅう@A店', 'ぎゅうにゅう@B店', 'たまご@A店']);
   });
 
-  it('商品だけ：名前の部分一致', () => {
-    const rows = buildDataRows(data, { storeId: null, query: 'にゅう' });
-    expect(rows.map(key)).toEqual(['ぎゅうにゅう@A店', 'ぎゅうにゅう@B店']);
+  it('商品だけ：名前の部分一致。当てはまる商品を、値段のない店も含めて店ごとに並べる', () => {
+    expect(buildDataRows(data, { storeId: null, query: 'にゅう' }).map(key)).toEqual(['ぎゅうにゅう@A店', 'ぎゅうにゅう@B店']);
+    const rows = buildDataRows(data, { storeId: null, query: 'たま' });
+    expect(rows.map(key)).toEqual(['たまご@A店', 'たまご@B店']);
+    expect(rows[1].price).toBeNull();
   });
 
   it('店だけ：その店に値段がない商品も、値段が空の行で出る', () => {
@@ -56,6 +58,7 @@ describe('buildDataRows', () => {
       prices: [...prices, { ...price('A', 'p9', 500) }, { ...price('B', 'p2', 1), deleted_at: '2026-11-01T00:00:00Z' }],
     };
     expect(buildDataRows(d, { storeId: null, query: 'ぎゅう' }).map(key)).toEqual(['ぎゅうにゅう@A店', 'ぎゅうにゅう@B店']);
+    expect(buildDataRows(d, { storeId: null, query: 'たま' })[1].price).toBeNull();
     expect(buildDataRows(d, { storeId: 'B', query: 'たま' })[0].price).toBeNull();
   });
 });

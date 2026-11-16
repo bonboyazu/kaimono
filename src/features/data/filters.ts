@@ -33,11 +33,12 @@ export function buildDataRows(src: DataSource, filter: DataFilter): DataRow[] {
     }
     return rows;
   }
+  // すべての店：文字を入れたら、当てはまる商品を店ごとに全部並べる（値段のない店も出す）。空なら値段のある行だけ
   const storeList = [...stores.values()].sort((a, b) => a.sort_order - b.sort_order);
   for (const product of products) {
     for (const store of storeList) {
-      const price = priceOf.get(`${store.id}:${product.id}`);
-      if (price) rows.push({ product, store, price, sales: salesOf(store.id, product.id) });
+      const price = priceOf.get(`${store.id}:${product.id}`) ?? null;
+      if (price || q) rows.push({ product, store, price, sales: salesOf(store.id, product.id) });
     }
   }
   return rows;
