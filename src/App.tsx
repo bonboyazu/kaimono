@@ -12,6 +12,10 @@ import ListPage from './features/list/ListPage.tsx';
 import LoginPage from './features/login/LoginPage.tsx';
 import SettingsPage from './features/settings/SettingsPage.tsx';
 import TabBar from './ui/TabBar.tsx';
+import PullToRefresh from './ui/PullToRefresh.tsx';
+import { refreshApp } from './data/appUpdate.ts';
+
+const refresh = () => void refreshApp();
 
 type Props = { auth?: AuthApi; withSync?: boolean };
 
@@ -47,6 +51,7 @@ export default function App({ auth = supabaseAuth, withSync = true }: Props) {
     <AuthContext.Provider value={{ user, auth }}>
       <HashRouter>
         <div className="app">
+          <PullToRefresh onRefresh={refresh} />
           <TabBar />
           <Routes>
             <Route path="/list" element={<ListPage />} />

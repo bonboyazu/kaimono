@@ -13,7 +13,9 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-      injectRegister: 'script',
+      // 登録は src/main.tsx で行う。新しい版が入ったら自動で読み直す
+      injectRegister: false,
+      registerType: 'autoUpdate',
       scope: BASE,
       includeAssets: ['icons/apple-touch-icon.png'],
       manifest: {
