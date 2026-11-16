@@ -24,9 +24,11 @@ describe('データ一覧', () => {
     await user.click(await screen.findByRole('button', { name: '足す' }));
     await user.click(screen.getByRole('button', { name: '値段' }));
     const dialog = screen.getByRole('dialog');
-    await user.selectOptions(within(dialog).getByLabelText('店'), 'A店');
-    const productSelect = within(dialog).getByLabelText('商品');
-    await user.selectOptions(productSelect, within(productSelect).getByRole('option', { name: '牛こま' }));
+    await user.click(await within(dialog).findByRole('button', { name: 'A店' }));
+    await user.type(within(dialog).getByLabelText('商品'), 'こま');
+    const candidates = within(dialog).getByRole('list', { name: '商品の候補' });
+    expect(within(candidates).queryByRole('button', { name: '卵' })).toBeNull();
+    await user.click(within(candidates).getByRole('button', { name: '牛こま' }));
     await user.type(await within(dialog).findByLabelText('通常の値段'), '180');
     await user.click(within(dialog).getByRole('button', { name: '税抜' }));
     expect(within(dialog).getByText('→ 税込 194円')).toBeInTheDocument();

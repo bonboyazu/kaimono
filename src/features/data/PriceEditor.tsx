@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRows } from '../../data/hooks.ts';
 import type { Price, Product, SalePrice, Store, TaxMode } from '../../domain/types.ts';
 import Sheet from '../../ui/Sheet.tsx';
+import SearchPicker from '../../ui/SearchPicker.tsx';
 import TaxToggle from '../../ui/TaxToggle.tsx';
 import { deletePrice, parseAmount, savePrice, saveSales } from './actions.ts';
 import { formatDate, WEEKDAYS, yen } from './filters.ts';
@@ -30,24 +31,14 @@ export default function PriceEditor(props: Props) {
     <Sheet title={choosing ? '値段を足す' : `${product?.name ?? ''}（${store?.name ?? ''}）`} onClose={props.onClose}>
       {choosing && (
         <div className="form-grid">
-          <label>
-            店
-            <select value={storeId} onChange={(e) => setStoreId(e.target.value)}>
-              <option value="">選ぶ</option>
-              {[...stores].sort((a, b) => a.sort_order - b.sort_order).map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            商品
-            <select value={productId} onChange={(e) => setProductId(e.target.value)}>
-              <option value="">選ぶ</option>
-              {[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja')).map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </label>
+          <SearchPicker
+            label="店" value={storeId} onChange={setStoreId}
+            options={[...stores].sort((a, b) => a.sort_order - b.sort_order)}
+          />
+          <SearchPicker
+            label="商品" value={productId} onChange={setProductId}
+            options={[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'))}
+          />
           {stores.length === 0 && <p className="note">先に「＋」から店を足してください</p>}
         </div>
       )}
