@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc -p tsconfig.json)",
+      "Bash(supabase db query --remote --read-only *)",
+      "Bash(supabase logs *)",
+      "Bash(npm view *)",
+      "Bash(supabase --version)"
+    ]
+  }
+}
