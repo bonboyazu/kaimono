@@ -345,3 +345,7 @@ button.danger { color: var(--color-warn); }
 .select-list li { min-height: 48px; display: flex; align-items: center; padding: 0 var(--space-4); }
 .select-list li + li { border-top: 1px solid var(--color-border); }
 .select-list li[aria-selected='true'] { color: var(--color-primary); font-weight: 600; }
+
+/* 似た商品の知らせ */
+.similar { padding: var(--space-3); border-radius: var(--radius); background: #fff6e5; border: 1px solid #f0d49b; font-size: 14px; }
+.similar ul { margin: var(--space-2) 0 0; padding-left: var(--space-5); }

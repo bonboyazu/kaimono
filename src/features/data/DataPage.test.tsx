@@ -96,6 +96,17 @@ describe('データ一覧', () => {
     await waitFor(async () => expect((await db.products.toArray()).find((p) => p.name === 'ちくわ')?.unit).toBe('100g'));
   });
 
+  it('商品を足すとき、似た商品が出る', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: '足す' }));
+    await user.click(screen.getByRole('button', { name: '商品' }));
+    await user.type(screen.getByLabelText('名前'), '低脂肪牛乳');
+    const note = await screen.findByRole('note', { name: '似た商品' });
+    expect(note).toHaveTextContent('牛乳');
+    expect(note).not.toHaveTextContent('卵');
+  });
+
   it('同じ名前の商品は足せない', async () => {
     const user = userEvent.setup();
     renderPage();

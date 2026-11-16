@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useRow } from '../../data/hooks.ts';
+import { similarNames } from '../../domain/similar.ts';
+import { useRow, useRows } from '../../data/hooks.ts';
 import type { Product, Unit } from '../../domain/types.ts';
 import Sheet from '../../ui/Sheet.tsx';
 import { addProduct, deleteProduct, updateProduct } from './actions.ts';
@@ -16,6 +17,8 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
   const [unit, setUnit] = useState<Unit>(product?.unit ?? 'piece');
   const [taxRate, setTaxRate] = useState(product?.tax_rate ?? 8);
   const [error, setError] = useState('');
+  const all = useRows('products');
+  const similar = similarNames(name, (all ?? []).filter((p) => p.id !== product?.id).map((p) => p.name));
 
   const save = async () => {
     try {
@@ -42,6 +45,15 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
           名前
           <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
         </label>
+        {similar.length > 0 && (
+          <div className="similar" role="note" aria-label="似た商品">
+            <p>似た商品がもうあります。同じものなら、足さずにそちらを使ってください</p>
+            <ul>
+              {similar.slice(0, 10).map((n) => <li key={n}>{n}</li>)}
+            </ul>
+            {similar.length > 10 && <p className="note">ほか {similar.length - 10} 件</p>}
+          </div>
+        )}
         <fieldset>
           <legend>値段の単位</legend>
           <label className="radio"><input type="radio" checked={unit === 'piece'} onChange={() => setUnit('piece')} />1つあたり</label>
