@@ -2,6 +2,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useRows } from '../../data/hooks.ts';
 import Header from '../../ui/Header.tsx';
+import Select from '../../ui/Select.tsx';
 import AddMenu from './AddMenu.tsx';
 import { buildDataRows } from './filters.ts';
 import PriceEditor from './PriceEditor.tsx';
@@ -41,10 +42,10 @@ export default function DataPage() {
       <Header title="データ" />
       <main className="page">
         <div className="filters">
-          <select aria-label="店で絞り込む" value={storeId} onChange={(e) => setStoreId(e.target.value)}>
-            <option value="">すべての店</option>
-            {sortedStores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+          <Select
+            label="店で絞り込む" value={storeId} onChange={setStoreId}
+            options={[{ value: '', label: 'すべての店' }, ...sortedStores.map((s) => ({ value: s.id, label: s.name }))]}
+          />
           <input
             type="search" aria-label="商品名で絞り込む" placeholder="商品名" value={query}
             onChange={(e) => setQuery(e.target.value)}

@@ -4,6 +4,7 @@ import { useRows } from '../../data/hooks.ts';
 import type { Price, Product, SalePrice, Store, TaxMode } from '../../domain/types.ts';
 import Sheet from '../../ui/Sheet.tsx';
 import SearchPicker from '../../ui/SearchPicker.tsx';
+import Select from '../../ui/Select.tsx';
 import TaxToggle from '../../ui/TaxToggle.tsx';
 import { deletePrice, parseAmount, savePrice, saveSales } from './actions.ts';
 import { formatDate, WEEKDAYS, yen } from './filters.ts';
@@ -35,15 +36,13 @@ export default function PriceEditor(props: Props) {
     >
       {choosing && (
         <div className="form-grid">
-          <label>
-            店
-            <select value={storeId} onChange={(e) => setStoreId(e.target.value)}>
-              <option value="">選ぶ</option>
-              {[...stores].sort((a, b) => a.sort_order - b.sort_order).map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </label>
+          <div className="picker">
+            <span className="picker-label">店</span>
+            <Select
+              label="店" value={storeId} onChange={setStoreId} placeholder="店を選ぶ"
+              options={[...stores].sort((a, b) => a.sort_order - b.sort_order).map((s) => ({ value: s.id, label: s.name }))}
+            />
+          </div>
           <SearchPicker
             label="商品" value={productId} onChange={setProductId}
             options={[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'))}

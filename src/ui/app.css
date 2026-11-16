@@ -322,3 +322,26 @@ button.danger { color: var(--color-warn); }
 .sale-line { padding: var(--space-2) 0; border-top: 1px solid var(--color-border); }
 .weekday-buttons { display: flex; width: 100%; gap: var(--space-1); }
 .weekday-buttons button { flex: 1; min-width: 0; padding: 0; }
+
+/* セレクトボックスの代わり：横いっぱい・1行 44px 以上 */
+.select { position: relative; width: 100%; }
+.select-button { width: 100%; display: flex; align-items: center; justify-content: space-between; text-align: left; }
+.select-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 15;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-1) 0;
+  max-height: 50dvh;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+.select-list li { min-height: 48px; display: flex; align-items: center; padding: 0 var(--space-4); }
+.select-list li + li { border-top: 1px solid var(--color-border); }
+.select-list li[aria-selected='true'] { color: var(--color-primary); font-weight: 600; }
