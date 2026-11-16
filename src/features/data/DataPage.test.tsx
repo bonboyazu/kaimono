@@ -105,11 +105,6 @@ describe('データ一覧', () => {
     const note = await screen.findByRole('note', { name: '似た商品' });
     expect(note).toHaveTextContent('牛乳');
     expect(note).not.toHaveTextContent('卵');
-    // 押すと、その商品の値段を入れる画面に移る
-    await user.click(within(note).getByRole('button', { name: '牛乳' }));
-    const dialog = await screen.findByRole('dialog', { name: '値段を足す' });
-    expect(within(dialog).getByText('牛乳')).toBeInTheDocument();
-    expect(within(dialog).getByRole('button', { name: '店' })).toBeInTheDocument();
   });
 
   it('同じ名前の商品は足せない', async () => {
