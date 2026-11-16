@@ -11,6 +11,10 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') void checkForUpdate();
 });
 
+// 2本の指で広げる拡大を止める（iPhone は viewport の指定だけでは止まらない）
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

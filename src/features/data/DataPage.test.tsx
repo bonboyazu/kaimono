@@ -40,8 +40,7 @@ describe('データ一覧', () => {
   it('通常の値段がないと、曜日セールは足せない', async () => {
     const user = userEvent.setup();
     renderPage();
-    await screen.findByRole('option', { name: 'A店' });
-    await user.selectOptions(screen.getByLabelText('店で絞り込む'), 'A店');
+    await user.click(await within(await screen.findByRole('group', { name: '店で絞り込む' })).findByRole('button', { name: 'A店' }));
     await user.click(await screen.findByRole('button', { name: /^卵/ }));
     const dialog = screen.getByRole('dialog');
     const addSale = await within(dialog).findByRole('button', { name: '曜日セールを足す' });
@@ -57,8 +56,7 @@ describe('データ一覧', () => {
   it('店で絞り込むと値段のない商品も並び、確定で保存して次の欄に移る', async () => {
     const user = userEvent.setup();
     renderPage();
-    await screen.findByRole('option', { name: 'A店' });
-    await user.selectOptions(screen.getByLabelText('店で絞り込む'), 'A店');
+    await user.click(await within(await screen.findByRole('group', { name: '店で絞り込む' })).findByRole('button', { name: 'A店' }));
     const first = await screen.findByLabelText('卵の値段');
     expect(screen.getByLabelText('牛こまの値段')).toBeInTheDocument();
     expect(screen.getByLabelText('牛乳の値段')).toBeInTheDocument();
@@ -81,7 +79,7 @@ describe('データ一覧', () => {
     await user.type(screen.getByLabelText('名前'), 'B店');
     await user.click(screen.getByRole('button', { name: '保存' }));
     await waitFor(async () => expect((await db.stores.toArray()).map((s) => s.name)).toContain('B店'));
-    expect(await screen.findByRole('option', { name: 'B店' })).toBeInTheDocument();
+    expect(await within(screen.getByRole('group', { name: '店で絞り込む' })).findByRole('button', { name: 'B店' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '足す' }));
     await user.click(screen.getByRole('button', { name: '商品' }));
     await user.type(screen.getByLabelText('名前'), 'ちくわ');

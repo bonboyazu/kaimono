@@ -138,14 +138,17 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
         const a = parseAmount(d.text);
         return (
           <div className="sale-line" key={i}>
-            <select
-              aria-label="曜日" value={d.weekday}
-              onChange={(e) => update(i, { weekday: Number(e.target.value) })}
-            >
+            <span className="weekday-buttons" role="group" aria-label="曜日">
               {WEEKDAYS.map((w, day) => (
-                <option key={day} value={day} disabled={day !== d.weekday && used.has(day)}>{w}</option>
+                <button
+                  key={day} type="button" aria-pressed={day === d.weekday}
+                  disabled={day !== d.weekday && used.has(day)}
+                  onClick={() => update(i, { weekday: day })}
+                >
+                  {w}
+                </button>
               ))}
-            </select>
+            </span>
             <input
               type="text" inputMode="numeric" aria-label={`${WEEKDAYS[d.weekday]}曜のセールの値段`} value={d.text}
               onChange={(e) => update(i, { text: e.target.value })}
