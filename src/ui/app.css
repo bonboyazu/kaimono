@@ -224,6 +224,7 @@ button.danger { color: var(--color-warn); }
 .sheet-head h2 { flex: 1; font-size: 16px; margin: 0; }
 .sheet-body { padding: var(--space-4); }
 .form-grid { display: flex; flex-direction: column; gap: var(--space-3); }
+.form-grid > label select { width: 100%; }
 .form-grid > label { display: flex; flex-direction: column; gap: var(--space-1); font-size: 14px; color: var(--color-muted); }
 .form-grid h3 { font-size: 15px; margin: var(--space-2) 0 0; }
 .form-grid p { margin: 0; }

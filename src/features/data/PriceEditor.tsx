@@ -35,10 +35,15 @@ export default function PriceEditor(props: Props) {
     >
       {choosing && (
         <div className="form-grid">
-          <SearchPicker
-            label="店" value={storeId} onChange={setStoreId}
-            options={[...stores].sort((a, b) => a.sort_order - b.sort_order)}
-          />
+          <label>
+            店
+            <select value={storeId} onChange={(e) => setStoreId(e.target.value)}>
+              <option value="">選ぶ</option>
+              {[...stores].sort((a, b) => a.sort_order - b.sort_order).map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </label>
           <SearchPicker
             label="商品" value={productId} onChange={setProductId}
             options={[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'))}

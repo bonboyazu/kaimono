@@ -41,13 +41,10 @@ export default function DataPage() {
       <Header title="データ" />
       <main className="page">
         <div className="filters">
-          <div className="chips" role="group" aria-label="店で絞り込む">
-            {[{ id: '', name: 'すべての店' }, ...sortedStores].map((s) => (
-              <button key={s.id} type="button" aria-pressed={storeId === s.id} onClick={() => setStoreId(s.id)}>
-                {s.name}
-              </button>
-            ))}
-          </div>
+          <select aria-label="店で絞り込む" value={storeId} onChange={(e) => setStoreId(e.target.value)}>
+            <option value="">すべての店</option>
+            {sortedStores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
           <input
             type="search" aria-label="商品名で絞り込む" placeholder="商品名" value={query}
             onChange={(e) => setQuery(e.target.value)}
