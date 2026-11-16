@@ -20,7 +20,11 @@ function StoreForm({ store, onClose, onAdded }: { store: Store | null; onClose: 
   const save = async () => {
     try {
       if (store) await renameStore(store, name);
-      else onAdded?.(await addStore(name));
+      else {
+        // onAdded?.(await addStore(...)) と書くと、onAdded がないとき addStore ごと飛ばされる
+        const newId = await addStore(name);
+        onAdded?.(newId);
+      }
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

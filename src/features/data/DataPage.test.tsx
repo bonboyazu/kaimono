@@ -71,6 +71,23 @@ describe('データ一覧', () => {
     expect(first).toBeInTheDocument();
   });
 
+  it('「＋」から店と商品を足せる', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: '足す' }));
+    await user.click(screen.getByRole('button', { name: '店' }));
+    await user.type(screen.getByLabelText('名前'), 'B店');
+    await user.click(screen.getByRole('button', { name: '保存' }));
+    await waitFor(async () => expect((await db.stores.toArray()).map((s) => s.name)).toContain('B店'));
+    expect(await screen.findByRole('option', { name: 'B店' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '足す' }));
+    await user.click(screen.getByRole('button', { name: '商品' }));
+    await user.type(screen.getByLabelText('名前'), 'ちくわ');
+    await user.click(screen.getByLabelText('100gあたり'));
+    await user.click(screen.getByRole('button', { name: '保存' }));
+    await waitFor(async () => expect((await db.products.toArray()).find((p) => p.name === 'ちくわ')?.unit).toBe('100g'));
+  });
+
   it('同じ名前の商品は足せない', async () => {
     const user = userEvent.setup();
     renderPage();
