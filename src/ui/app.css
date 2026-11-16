@@ -1,0 +1,166 @@
+:root {
+  --color-bg: #f6f7f5;
+  --color-surface: #ffffff;
+  --color-text: #1f2a24;
+  --color-muted: #6b756f;
+  --color-border: #dde2de;
+  --color-primary: #2f7d4f;
+  --color-primary-text: #ffffff;
+  --color-warn: #b4471f;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --radius: 10px;
+  --tap: 44px;
+  --tabbar-height: 56px;
+  --font: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font);
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+#root { min-height: 100dvh; }
+
+button, input, select, textarea { font: inherit; }
+
+button {
+  min-height: var(--tap);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+button.primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-text);
+}
+button:disabled { opacity: 0.5; }
+
+input {
+  min-height: var(--tap);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  width: 100%;
+}
+
+.app {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
+}
+
+/* ヘッダー */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: env(safe-area-inset-top) var(--space-4) 0;
+  min-height: calc(52px + env(safe-area-inset-top));
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.header h1 { font-size: 18px; margin: 0; flex: 1; }
+.gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  color: var(--color-muted);
+}
+.gear.active { color: var(--color-primary); }
+
+.sync-badges { display: flex; gap: var(--space-1); flex-wrap: wrap; justify-content: flex-end; }
+.badge {
+  font-size: 11px;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+.badge.warn { color: var(--color-warn); border-color: var(--color-warn); }
+
+/* メニュー：iPhone では下 */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab {
+  flex: 1;
+  min-height: var(--tabbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+.tab.active { color: var(--color-primary); font-weight: 600; }
+
+/* パソコンでは上に横並び */
+@media (min-width: 768px) {
+  .app { padding-bottom: 0; }
+  .tabbar {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    justify-content: center;
+    border-top: none;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0;
+  }
+  .tab { flex: 0 0 160px; }
+  .header { position: static; padding-top: 0; min-height: 52px; }
+  .page, .header { max-width: 760px; margin: 0 auto; }
+}
+
+.page { padding: var(--space-4); }
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.card h2 { font-size: 16px; margin: 0 0 var(--space-3); }
+.card p { margin: 0 0 var(--space-3); }
+.card .row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.note { font-size: 14px; color: var(--color-muted); }
+.error { color: var(--color-warn); }
+
+/* ログイン */
+.login {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: calc(var(--space-5) * 2 + env(safe-area-inset-top)) var(--space-4) var(--space-4);
+}
+.login h1 { text-align: center; }
+.login form { display: flex; flex-direction: column; gap: var(--space-4); }
+.login label { display: flex; flex-direction: column; gap: var(--space-1); font-size: 14px; color: var(--color-muted); }
