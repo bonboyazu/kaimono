@@ -36,8 +36,8 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
   };
 
   return (
-    <Sheet title={product ? '商品を編集' : '商品を足す'} onClose={onClose}>
-      <div className="form-grid">
+    <Sheet title={product ? '商品を編集' : '商品を足す'} onClose={onClose} formId="product-form">
+      <form id="product-form" className="form-grid" onSubmit={(e) => { e.preventDefault(); void save(); }}>
         <label>
           名前
           <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
@@ -53,9 +53,8 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
           <label className="radio"><input type="radio" checked={taxRate === 10} onChange={() => setTaxRate(10)} />食品以外（10%）</label>
         </fieldset>
         {error && <p className="error">{error}</p>}
-        <button type="button" className="primary" onClick={save}>保存</button>
         {product && <button type="button" className="plain danger" onClick={remove}>この商品を消す</button>}
-      </div>
+      </form>
     </Sheet>
   );
 }

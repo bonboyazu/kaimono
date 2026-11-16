@@ -189,20 +189,22 @@ button.danger { color: var(--color-warn); }
   z-index: 20;
   background: rgba(0, 0, 0, 0.35);
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: calc(env(safe-area-inset-top) + var(--space-2));
 }
+/* 上から出す。キーボードで隠れるのは下だけになり、右上の「保存」は見えたまま */
 .sheet {
   width: 100%;
   max-width: 560px;
-  max-height: 90dvh;
+  max-height: calc(100dvh - env(safe-area-inset-top) - var(--space-2));
   overflow-y: auto;
   background: var(--color-surface);
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: 0 0 var(--radius) var(--radius);
   padding-bottom: env(safe-area-inset-bottom);
 }
 @media (min-width: 768px) {
-  .sheet-backdrop { align-items: center; }
+  .sheet-backdrop { align-items: center; padding-top: 0; }
   .sheet { border-radius: var(--radius); }
 }
 .sheet-head {

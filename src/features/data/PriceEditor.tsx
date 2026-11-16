@@ -28,7 +28,11 @@ export default function PriceEditor(props: Props) {
   const choosing = !props.storeId || !props.productId;
 
   return (
-    <Sheet title={choosing ? '値段を足す' : `${product?.name ?? ''}（${store?.name ?? ''}）`} onClose={props.onClose}>
+    <Sheet
+      title={choosing ? '値段を足す' : `${product?.name ?? ''}（${store?.name ?? ''}）`}
+      onClose={props.onClose}
+      formId={store && product ? 'price-form' : undefined}
+    >
       {choosing && (
         <div className="form-grid">
           <SearchPicker
@@ -40,6 +44,7 @@ export default function PriceEditor(props: Props) {
             options={[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'))}
           />
           {stores.length === 0 && <p className="note">先に「＋」から店を足してください</p>}
+          {(!store || !product) && <p className="note">店と商品を選ぶと、値段を入れられます</p>}
         </div>
       )}
       {store && product && (
@@ -112,7 +117,7 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
   };
 
   return (
-    <div className="form-grid">
+    <form id="price-form" className="form-grid" onSubmit={(e) => { e.preventDefault(); void save(); }}>
       <label>
         通常の値段{unit && `（${unit}）`}
         <span className="amount-line">
@@ -163,12 +168,11 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
       {amount === null && <p className="note">通常の値段を入れると、曜日セールを足せます</p>}
 
       {error && <p className="error">{error}</p>}
-      <button type="button" className="primary" onClick={save}>保存</button>
       <div className="row">
         <button type="button" className="plain" onClick={() => onEditProduct(product.id)}>商品を編集</button>
         <button type="button" className="plain" onClick={() => onEditStore(store.id)}>店を編集</button>
         {price && <button type="button" className="plain danger" onClick={remove}>値段を消す</button>}
       </div>
-    </div>
+    </form>
   );
 }

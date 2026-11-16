@@ -39,16 +39,15 @@ function StoreForm({ store, onClose, onAdded }: { store: Store | null; onClose: 
   };
 
   return (
-    <Sheet title={store ? '店を編集' : '店を足す'} onClose={onClose}>
-      <div className="form-grid">
+    <Sheet title={store ? '店を編集' : '店を足す'} onClose={onClose} formId="store-form">
+      <form id="store-form" className="form-grid" onSubmit={(e) => { e.preventDefault(); void save(); }}>
         <label>
           名前
           <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
         </label>
         {error && <p className="error">{error}</p>}
-        <button type="button" className="primary" onClick={save}>保存</button>
         {store && <button type="button" className="plain danger" onClick={remove}>この店を消す</button>}
-      </div>
+      </form>
     </Sheet>
   );
 }
