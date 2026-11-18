@@ -7,4 +7,3 @@ supabase/.temp
 supabase/.branches
 .claude/settings.local.json
 *.tsbuildinfo
-supabase/functions/_shared/domain
