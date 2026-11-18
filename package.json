@@ -10,7 +10,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "icons": "node scripts/make-icons.mjs",
-    "gen:presets": "node scripts/gen-preset-sql.ts"
+    "gen:presets": "node scripts/gen-preset-sql.ts",
+    "copy:domain": "node scripts/copy-domain.mjs",
+    "deploy:functions": "npm run copy:domain && supabase functions deploy daily-sale-push && supabase functions deploy send-test-push"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",

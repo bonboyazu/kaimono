@@ -428,3 +428,6 @@ enabled = true
 # ログインした利用者と、タイマー（secret key）の両方から呼ぶ。確かめは関数の中で行う
 [functions.send-test-push]
 verify_jwt = false
+
+[functions.daily-sale-push]
+verify_jwt = false
