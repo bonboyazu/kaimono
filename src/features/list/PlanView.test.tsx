@@ -89,16 +89,18 @@ describe('提案', () => {
     await waitFor(async () => expect((await db.list_items.toArray())[0].bought_store_id).toBe('A'));
   });
 
-  it('リストの行の右に安い店が出て、押すと店が安い順に開く', async () => {
+  it('リストの行の右に安い店が出て、行を押すと店の安い順・メモ・外すが開く', async () => {
     const u = userEvent.setup();
     render(
       <AuthContext.Provider value={{ user, auth: {} as AuthApi }}>
         <MemoryRouter initialEntries={['/list']}><ListPage /></MemoryRouter>
       </AuthContext.Provider>,
     );
-    const btn = await screen.findByRole('button', { name: '卵の安い店' });
+    const btn = await screen.findByRole('button', { name: '卵' });
     expect(btn).toHaveTextContent('A店 98円（水）');
     await u.click(btn);
+    expect(screen.getByLabelText('卵のメモ')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'リストから外す' })).toBeInTheDocument();
     const list = screen.getByRole('list', { name: '卵の安い店' });
     const rows = within(list).getAllByRole('listitem').map((li) => li.textContent);
     expect(rows).toEqual(['1A店98円水曜セール（ふだん 198円）', '2B店168円']);
