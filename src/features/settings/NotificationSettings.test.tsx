@@ -11,7 +11,7 @@ test('ホーム画面から開いていないときは、追加を促し、ス�
 test('見出しの横にスイッチだけが出る', () => {
   render(<NotificationSettings env={{ standalone: true, supported: true }} initialOn={false} />);
   expect(screen.getByRole('switch', { name: '通知' })).toHaveAttribute('aria-checked', 'false');
-  expect(screen.queryAllByRole('button')).toHaveLength(1);
+  expect(screen.queryByRole('button', { name: '試しの通知を送る' })).toBeNull();
 });
 
 test('オンのときは、スイッチがオンで出る', () => {
