@@ -1,15 +1,27 @@
-// リストの1行。左がチェック。名前を押すとメモの欄。左にずらすと「外す」
+// リストの1行。左がチェック。名前を押すとメモの欄。右の値段を押すと店の安い順。左にずらすと「外す」
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../data/auth.ts';
+import type { StoreRank } from '../../domain/ranking.ts';
 import type { ListItem, Product } from '../../domain/types.ts';
 import { check, removeItem, saveMemo, uncheck } from './actions.ts';
+import { cheapestText } from './planText.ts';
+import PriceRanking from './PriceRanking.tsx';
 
 const SWIPE = 72;
 
-/** storeId：チェックしたときに「買った店」として入れる店（提案で選ばれた店） */
-export default function ItemRow({ item, product, storeId = null }: { item: ListItem; product: Product | undefined; storeId?: string | null }) {
+type Prices = {
+  ranks: StoreRank[];
+  storeName: (id: string) => string;
+  onOpenPrice: (storeId: string | null, productId: string) => void;
+};
+
+/** storeId：チェックしたときに「買った店」として入れる店（提案で選ばれた店）。prices があれば右に安い店を出す */
+export default function ItemRow({ item, product, storeId = null, prices }: {
+  item: ListItem; product: Product | undefined; storeId?: string | null; prices?: Prices;
+}) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [ranking, setRanking] = useState(false);
   const [memo, setMemo] = useState(item.memo);
   const [shift, setShift] = useState(0);
   const startX = useRef<number | null>(null);
@@ -53,10 +65,24 @@ export default function ItemRow({ item, product, storeId = null }: { item: ListI
           <span aria-hidden="true">{checked ? '✓' : ''}</span>
         </button>
         <div className="item-main">
-          <button type="button" className="item-name" aria-expanded={open} onClick={() => { setShift(0); setOpen((o) => !o); }}>
-            {name}
-            {!open && item.memo && <span className="item-memo">{item.memo}</span>}
-          </button>
+          <div className="item-line">
+            <button type="button" className="item-name" aria-expanded={open} onClick={() => { setShift(0); setOpen((o) => !o); }}>
+              {name}
+              {!open && item.memo && <span className="item-memo">{item.memo}</span>}
+            </button>
+            {prices && product && !checked && (
+              <button
+                type="button" className="plain item-cheapest" aria-expanded={ranking} aria-label={`${name}の安い店`}
+                onClick={() => { setShift(0); setRanking((r) => !r); }}
+              >
+                <span className={prices.ranks.length === 0 ? 'note' : undefined}>{cheapestText(prices.ranks, prices.storeName, product)}</span>
+                <span className="item-cheapest-mark" aria-hidden="true">{ranking ? '▾' : '▸'}</span>
+              </button>
+            )}
+          </div>
+          {ranking && prices && product && !checked && (
+            <PriceRanking product={product} ranks={prices.ranks} storeName={prices.storeName} onOpenPrice={prices.onOpenPrice} />
+          )}
           {open && (
             <div className="item-edit">
               <input

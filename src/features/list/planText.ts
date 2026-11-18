@@ -1,6 +1,7 @@
 // 提案の画面の言葉
 import { addDays, weekdayOf } from '../../domain/dates.ts';
 import type { Alt } from '../../domain/plan.ts';
+import type { StoreRank } from '../../domain/ranking.ts';
 import type { Product } from '../../domain/types.ts';
 import { WEEKDAYS } from '../data/filters.ts';
 
@@ -28,3 +29,17 @@ export const altText = (a: Alt, storeName: string, product: Product) => `${store
 /** 一言：'B店なら 168円（−30円）'。今の候補がないときは差額を付けない */
 export const tipText = (a: Alt, storeName: string, product: Product, withDiff: boolean) =>
   `${storeName}なら ${priceText(a.price, product)}${withDiff ? `（${diffText(a.diff)}）` : ''}`;
+
+/** 曜日の並び：[3, 0] → '水・日' */
+export const weekdaysText = (days: number[]) => days.map((d) => WEEKDAYS[d]).join('・');
+
+/** 行の右に出す、いちばん安い所：'マルキョウ 98円（水）'・'どこも 58円'・'値段なし' */
+export function cheapestText(ranks: StoreRank[], storeName: (id: string) => string, product: Product): string {
+  if (ranks.length === 0) return '値段なし';
+  const top = ranks[0];
+  if (ranks.length > 1 && ranks.every((r) => r.best === top.best && r.sale_weekdays.length === 0)) {
+    return `どこも ${priceText(top.best, product)}`;
+  }
+  const days = top.sale_weekdays.length > 0 ? `（${weekdaysText(top.sale_weekdays)}）` : '';
+  return `${storeName(top.store_id)} ${priceText(top.best, product)}${days}`;
+}

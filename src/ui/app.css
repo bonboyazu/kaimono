@@ -419,7 +419,7 @@ button.danger { color: var(--color-warn); }
 
 /* 設定：オン・オフのスイッチ */
 .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 44px; }
-.toggle { position: relative; width: 52px; height: 32px; padding: 0; border-radius: 16px; border: none; background: #c9ccd1; transition: background-color 0.2s ease; flex: none; }
+.toggle { position: relative; width: 52px; height: 32px; min-height: 32px; padding: 0; -webkit-appearance: none; appearance: none; border-radius: 16px; border: none; background: #c9ccd1; transition: background-color 0.2s ease; flex: none; }
 .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease; }
 .toggle[aria-checked='true'] { background: var(--color-primary); }
 .toggle[aria-checked='true']::after { transform: translateX(20px); }
@@ -430,3 +430,20 @@ button.danger { color: var(--color-warn); }
 @media (prefers-reduced-motion: reduce) {
   .toggle, .toggle::after, .store-setting > li { transition: none; }
 }
+
+/* リスト：商品ごとの安い店 */
+.item-line { display: flex; align-items: stretch; }
+.item-line .item-name { flex: 1; min-width: 0; }
+.item-cheapest { flex: 0 1 auto; max-width: 55%; display: inline-flex; align-items: center; gap: var(--space-1); padding: 0 var(--space-3) 0 var(--space-2); font-size: 14px; color: var(--color-primary); text-align: right; }
+.item-cheapest > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-cheapest-mark { color: var(--color-muted); }
+.ranking { padding: 0 var(--space-3) var(--space-3) 0; }
+.ranking-list { list-style: none; margin: 0 0 var(--space-1); padding: 0; border-top: 1px solid var(--color-border); }
+.ranking-list li { border-bottom: 1px solid var(--color-border); }
+.ranking-row { width: 100%; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) 0; text-align: left; }
+.ranking-no { width: 22px; height: 22px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; background: #eef0f2; color: var(--color-text); }
+.ranking-list li:first-child .ranking-no { background: var(--color-primary); color: var(--color-primary-text); }
+.ranking-store { flex: 1; min-width: 0; }
+.ranking-price { display: flex; flex-direction: column; align-items: flex-end; font-weight: 600; }
+.ranking-sale { font-size: 12px; font-weight: 400; color: var(--color-warn); }
+.ranking-add { font-size: 14px; padding-left: 0; color: var(--color-primary); }

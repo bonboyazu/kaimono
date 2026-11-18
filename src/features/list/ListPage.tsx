@@ -3,7 +3,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRows } from '../../data/hooks.ts';
 import { softDelete } from '../../data/sync/mutate.ts';
 import { activeItems, duplicatesToRemove } from '../../domain/list.ts';
+import { rankStores, type StoreRank } from '../../domain/ranking.ts';
 import Header from '../../ui/Header.tsx';
+import PriceEditor from '../data/PriceEditor.tsx';
+import ProductEditor from '../data/ProductEditor.tsx';
+import StoreEditor from '../data/StoreEditor.tsx';
 import AddSheet from './AddSheet.tsx';
 import ItemRow from './ItemRow.tsx';
 import ModeSwitch, { useMode } from './ModeSwitch.tsx';
@@ -25,11 +29,20 @@ function useNow(): Date {
   return now;
 }
 
+type Open =
+  | { kind: 'price'; storeId: string | null; productId: string }
+  | { kind: 'product'; id: string }
+  | { kind: 'store'; id: string };
+
 export default function ListPage() {
   const [mode, setMode] = useMode();
   const items = useRows('list_items');
   const products = useRows('products');
+  const stores = useRows('stores');
+  const prices = useRows('prices');
+  const sales = useRows('sale_prices');
   const [adding, setAdding] = useState(false);
+  const [open, setOpen] = useState<Open | null>(null);
   const now = useNow();
   const plan = usePlan(now);
 
@@ -41,6 +54,22 @@ export default function ListPage() {
 
   const productOf = useMemo(() => new Map((products ?? []).map((p) => [p.id, p])), [products]);
   const { toBuy, boughtToday } = useMemo(() => activeItems(items ?? [], now), [items, now]);
+
+  // 商品ごとに、店の安い順
+  const ranksOf = useMemo(() => {
+    const out = new Map<string, StoreRank[]>();
+    if (!stores || !prices || !sales) return out;
+    for (const i of toBuy) {
+      const p = productOf.get(i.product_id);
+      if (p) out.set(p.id, rankStores(p, stores, prices, sales));
+    }
+    return out;
+  }, [toBuy, productOf, stores, prices, sales]);
+  const storeName = useMemo(() => {
+    const m = new Map((stores ?? []).map((s) => [s.id, s.name]));
+    return (id: string) => m.get(id) ?? '（消した店）';
+  }, [stores]);
+  const openPrice = (storeId: string | null, productId: string) => setOpen({ kind: 'price', storeId, productId });
 
   return (
     <>
@@ -56,7 +85,12 @@ export default function ListPage() {
             </button>
             {items && toBuy.length === 0 && <p className="note empty">リストは空です。上から商品を足してください</p>}
             <ul className="item-list" aria-label="買うもの">
-              {toBuy.map((i) => <ItemRow key={i.id} item={i} product={productOf.get(i.product_id)} storeId={chosenStoreOf(plan, i.id)} />)}
+              {toBuy.map((i) => (
+                <ItemRow
+                  key={i.id} item={i} product={productOf.get(i.product_id)} storeId={chosenStoreOf(plan, i.id)}
+                  prices={{ ranks: ranksOf.get(i.product_id) ?? [], storeName, onOpenPrice: openPrice }}
+                />
+              ))}
             </ul>
             {boughtToday.length > 0 && (
               <>
@@ -70,6 +104,15 @@ export default function ListPage() {
         )}
       </main>
       {adding && <AddSheet onClose={() => setAdding(false)} />}
+      {open?.kind === 'price' && (
+        <PriceEditor
+          storeId={open.storeId} productId={open.productId} onClose={() => setOpen(null)}
+          onEditProduct={(id) => setOpen({ kind: 'product', id })}
+          onEditStore={(id) => setOpen({ kind: 'store', id })}
+        />
+      )}
+      {open?.kind === 'product' && <ProductEditor id={open.id} onClose={() => setOpen(null)} />}
+      {open?.kind === 'store' && <StoreEditor id={open.id} onClose={() => setOpen(null)} />}
     </>
   );
 }
