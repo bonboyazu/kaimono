@@ -73,7 +73,7 @@ export default function ListPage() {
       <Header title="リスト" />
       <main className="page">
         <button type="button" className="search-trigger" onClick={() => setAdding(true)}>
-          ＋ 商品を足す（探す）
+          <span className="search-trigger-plus" aria-hidden="true">＋</span>商品を足す
         </button>
         {items && toBuy.length === 0 && <p className="note empty">リストは空です。上から商品を足してください</p>}
         <ul className="item-list" aria-label="買うもの">

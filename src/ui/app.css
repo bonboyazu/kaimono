@@ -358,7 +358,8 @@ button.danger { color: var(--color-warn); }
 .mode-switch button:first-child { border-radius: var(--radius) 0 0 var(--radius); }
 .mode-switch button:last-child { border-radius: 0 var(--radius) var(--radius) 0; border-left: none; }
 .mode-switch button[aria-pressed='true'] { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-primary-text); }
-.search-trigger { width: 100%; text-align: left; color: var(--color-muted); margin-bottom: var(--space-3); }
+.search-trigger { width: 100%; display: flex; align-items: center; justify-content: center; gap: var(--space-2); margin-bottom: var(--space-3); background: var(--color-primary); border-color: var(--color-primary); color: var(--color-primary-text); font-weight: 600; }
+.search-trigger-plus { font-size: 22px; line-height: 1; }
 .section-title { font-size: 14px; color: var(--color-muted); margin: var(--space-5) 0 var(--space-2); }
 .item-list { list-style: none; margin: 0; padding: 0; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }
 .item-list:empty { display: none; }
