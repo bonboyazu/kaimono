@@ -362,10 +362,9 @@ button.danger { color: var(--color-warn); }
 .item-list:empty { display: none; }
 .item-row { position: relative; border-bottom: 1px solid var(--color-border); }
 .item-row:last-child { border-bottom: none; }
-.item-actions { position: absolute; top: 0; right: 0; bottom: 0; display: flex; }
-.item-actions button { width: 72px; min-height: 0; border: none; border-radius: 0; color: #fff; }
-.item-memo-btn { background: #6b7280; }
-.item-remove { background: var(--color-warn); }
+.item-memo-btn, .item-remove { position: absolute; top: 0; bottom: 0; width: 72px; min-height: 0; border: none; border-radius: 0; color: #fff; }
+.item-memo-btn { left: 0; background: #6b7280; }
+.item-remove { right: 0; background: var(--color-warn); }
 .item-body { position: relative; display: flex; align-items: flex-start; background: var(--color-surface); transition: transform 0.15s; }
 .item-check {
   flex: 0 0 auto; width: var(--tap); height: var(--tap); padding: 0; margin: 2px var(--space-1) 0 var(--space-2);

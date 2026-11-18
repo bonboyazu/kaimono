@@ -45,7 +45,7 @@ describe('リスト', () => {
     expect((await db.list_items.toArray())[0]).toMatchObject({ checked_at: null, checked_by: null });
   });
 
-  it('左にずらして「メモ」を押すと、メモを書いて保存できる', async () => {
+  it('右にずらして「メモ」を押すと、メモを書いて保存できる', async () => {
     await addToList(ids['卵'], user.id);
     const u = userEvent.setup();
     renderPage();

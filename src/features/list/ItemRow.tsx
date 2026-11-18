@@ -1,4 +1,4 @@
-// リストの1行。左がチェック。行を押すと店の安い順が開く。左にずらすと「メモ」と「外す」
+// リストの1行。左がチェック。行を押すと店の安い順が開く。右にずらすと「メモ」、左にずらすと「外す」
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../data/auth.ts';
 import type { StoreRank } from '../../domain/ranking.ts';
@@ -7,7 +7,7 @@ import { check, removeItem, saveMemo, uncheck } from './actions.ts';
 import Sheet from '../../ui/Sheet.tsx';
 import PriceRanking from './PriceRanking.tsx';
 
-const SWIPE = 144;
+const SWIPE = 72;
 
 type Prices = {
   ranks: StoreRank[];
@@ -35,32 +35,32 @@ export default function ItemRow({ item, product, storeId = null, prices }: {
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (checked) return;
-    startX.current = e.touches[0].clientX + (shift ? SWIPE : 0);
+    startX.current = e.touches[0].clientX - shift;
   };
   const onTouchMove = (e: React.TouchEvent) => {
     if (startX.current === null) return;
-    setShift(Math.max(-SWIPE, Math.min(0, e.touches[0].clientX - startX.current)));
+    setShift(Math.max(-SWIPE, Math.min(SWIPE, e.touches[0].clientX - startX.current)));
   };
   const onTouchEnd = () => {
     if (startX.current === null) return;
     startX.current = null;
-    setShift((s) => (s < -SWIPE / 2 ? -SWIPE : 0));
+    setShift((s) => (s < -SWIPE / 2 ? -SWIPE : s > SWIPE / 2 ? SWIPE : 0));
   };
 
-  const actionTab = shift ? 0 : -1;
+  // 右にずらすと左に「メモ」、左にずらすと右に「外す」が出る
   const startMemo = () => { setShift(0); setEditing(true); };
 
   return (
     <li className={`item-row${checked ? ' checked' : ''}`}>
       {!checked && (
-        <div className="item-actions">
-          <button type="button" className="item-memo-btn" tabIndex={actionTab} aria-label={`${name}のメモを書く`} onClick={startMemo}>
+        <>
+          <button type="button" className="item-memo-btn" tabIndex={shift > 0 ? 0 : -1} aria-label={`${name}のメモを書く`} onClick={startMemo}>
             メモ
           </button>
-          <button type="button" className="item-remove" tabIndex={actionTab} aria-label={`${name}をリストから外す`} onClick={() => removeItem(item)}>
+          <button type="button" className="item-remove" tabIndex={shift < 0 ? 0 : -1} aria-label={`${name}をリストから外す`} onClick={() => removeItem(item)}>
             外す
           </button>
-        </div>
+        </>
       )}
       <div
         className="item-body" style={{ transform: `translateX(${shift}px)` }}
