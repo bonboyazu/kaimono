@@ -73,9 +73,9 @@ export default function ListPage() {
       <Header title="リスト" />
       <main className="page">
         <button type="button" className="search-trigger" onClick={() => setAdding(true)}>
-          <span className="search-trigger-plus" aria-hidden="true">＋</span>商品を足す
+          <span className="search-trigger-plus" aria-hidden="true">＋</span>買うものを追加
         </button>
-        {items && toBuy.length === 0 && <p className="note empty">リストは空です。上から商品を足してください</p>}
+        {items && toBuy.length === 0 && <p className="note empty">リストは空です。上の「買うものを追加」から入れてください</p>}
         <ul className="item-list" aria-label="買うもの">
           {toBuy.map((i) => (
             <ItemRow

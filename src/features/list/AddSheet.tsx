@@ -1,4 +1,4 @@
-// 商品を足す画面。空なら「よく買うもの」、文字を打てば絞り込む。ない商品はその場で足せる
+// 買うものを追加する画面。空なら「よく買うもの」、文字を打てば絞り込む。ない商品はその場で足せる
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../data/auth.ts';
 import { useRows } from '../../data/hooks.ts';
@@ -42,7 +42,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Sheet title="リストに足す" onClose={onClose}>
+    <Sheet title="買うものを追加" onClose={onClose}>
       <div className="form-grid">
         <input
           type="search" aria-label="商品を探す" placeholder="商品名で探す" value={query} autoFocus

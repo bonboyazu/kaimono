@@ -73,11 +73,11 @@ describe('リスト', () => {
   });
 });
 
-describe('商品を足す', () => {
+describe('買うものを追加', () => {
   it('検索欄を押すと候補が出て、押すと入り、もう一度押すと外れる。同じ商品は2つ入らない', async () => {
     const u = userEvent.setup();
     renderPage();
-    await u.click(await screen.findByRole('button', { name: /商品を足す/ }));
+    await u.click(await screen.findByRole('button', { name: /買うものを追加/ }));
     const list = await screen.findByRole('list', { name: '候補' });
     const egg = await within(list).findByRole('button', { name: '卵' });
     await u.click(egg);
@@ -93,7 +93,7 @@ describe('商品を足す', () => {
   it('文字で絞り込める。ひらがなでカタカナも当たる', async () => {
     const u = userEvent.setup();
     renderPage();
-    await u.click(await screen.findByRole('button', { name: /商品を足す/ }));
+    await u.click(await screen.findByRole('button', { name: /買うものを追加/ }));
     await u.type(screen.getByLabelText('商品を探す'), 'きゃべ');
     const list = screen.getByRole('list', { name: '候補' });
     expect(await within(list).findByRole('button', { name: 'キャベツ' })).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe('商品を足す', () => {
   it('探して足すと、検索が空になり、足したことが出る', async () => {
     const u = userEvent.setup();
     renderPage();
-    await u.click(await screen.findByRole('button', { name: /商品を足す/ }));
+    await u.click(await screen.findByRole('button', { name: /買うものを追加/ }));
     await u.type(screen.getByLabelText('商品を探す'), 'きゃべ');
     await u.click(await within(screen.getByRole('list', { name: '候補' })).findByRole('button', { name: 'キャベツ' }));
     expect(await screen.findByText('「キャベツ」をリストに入れました')).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe('商品を足す', () => {
   it('ない商品はその場で足せる（1つあたり・食品）', async () => {
     const u = userEvent.setup();
     renderPage();
-    await u.click(await screen.findByRole('button', { name: /商品を足す/ }));
+    await u.click(await screen.findByRole('button', { name: /買うものを追加/ }));
     await u.type(screen.getByLabelText('商品を探す'), 'ちくわ');
     await u.click(await screen.findByRole('button', { name: '“ちくわ”を追加' }));
     await waitFor(async () => expect(await db.list_items.count()).toBe(1));
@@ -129,7 +129,7 @@ describe('商品を足す', () => {
       for (let i = 0; i < k; i++) await createRow('list_items', { ...base, id: crypto.randomUUID(), product_id: ids[n], checked_at: '2026-11-01T01:00:00Z' });
     const u = userEvent.setup();
     renderPage();
-    await u.click(await screen.findByRole('button', { name: /商品を足す/ }));
+    await u.click(await screen.findByRole('button', { name: /買うものを追加/ }));
     const list = await screen.findByRole('list', { name: '候補' });
     await waitFor(() => expect(within(list).getAllByRole('button').map((b) => b.textContent)).toEqual(['卵', 'キャベツ']));
   });
