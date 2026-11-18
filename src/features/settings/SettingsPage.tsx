@@ -2,6 +2,7 @@ import { useAuth } from '../../data/auth.ts';
 import { db } from '../../data/db.ts';
 import { countStatus } from '../../data/sync/engine.ts';
 import Header from '../../ui/Header.tsx';
+import ExportButton from './ExportButton.tsx';
 import NotificationSettings from './NotificationSettings.tsx';
 import StoreSetting from './StoreSetting.tsx';
 import WeekdaySetting from './WeekdaySetting.tsx';
@@ -27,6 +28,7 @@ export default function SettingsPage() {
         <WeekdaySetting />
         <StoreSetting />
         <NotificationSettings />
+        <ExportButton />
         <section className="card">
           <h2>ログイン中</h2>
           <p>{user?.email}</p>
