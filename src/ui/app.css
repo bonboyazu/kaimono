@@ -342,6 +342,8 @@ button.danger { color: var(--color-warn); }
   border-radius: var(--radius);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
+.sheet .select-list { position: static; margin-top: 4px; max-height: none; } /* 重ねた画面の中では切れないよう、下を押し下げて開く */
+.picker-fixed { font-weight: 600; }
 .select-list li { min-height: 48px; display: flex; align-items: center; padding: 0 var(--space-4); }
 .select-list li + li { border-top: 1px solid var(--color-border); }
 .select-list li[aria-selected='true'] { color: var(--color-primary); font-weight: 600; }

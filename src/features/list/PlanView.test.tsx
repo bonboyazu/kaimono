@@ -115,8 +115,28 @@ describe('提案', () => {
     );
     await u.click(await screen.findByRole('button', { name: '卵' }));
     await u.click(screen.getByRole('button', { name: '＋ ほかの店の値段を入れる' }));
-    const dialog = await screen.findByRole('dialog', { name: '卵の値段を足す' });
-    expect(within(dialog).queryByText('商品')).toBeNull();
+    const dialog = await screen.findByRole('dialog', { name: '値段を足す' });
+    expect(within(dialog).getByText('卵')).toBeInTheDocument();
+    expect(within(dialog).queryByRole('combobox')).toBeNull();
+    expect(within(dialog).queryByRole('searchbox')).toBeNull();
     expect(within(dialog).getByText('すべての店に値段が入っています')).toBeInTheDocument();
+  });
+
+  it('値段のない店を選ぶと、その店の値段を入れられる', async () => {
+    await createRow('stores', { id: 'C', name: 'C店', sort_order: 2, visit_mode: 'usual', default_tax_mode: 'included' });
+    const u = userEvent.setup();
+    render(
+      <AuthContext.Provider value={{ user, auth: {} as AuthApi }}>
+        <MemoryRouter initialEntries={['/list']}><ListPage /></MemoryRouter>
+      </AuthContext.Provider>,
+    );
+    await u.click(await screen.findByRole('button', { name: '卵' }));
+    await u.click(screen.getByRole('button', { name: '＋ ほかの店の値段を入れる' }));
+    const dialog = await screen.findByRole('dialog', { name: '値段を足す' });
+    await u.click(within(dialog).getByRole('button', { name: '店' }));
+    const options = within(dialog).getAllByRole('option').map((o) => o.textContent);
+    expect(options).toEqual(['C店']);
+    await u.click(within(dialog).getByRole('option', { name: 'C店' }));
+    expect(await within(dialog).findByLabelText('通常の値段')).toBeInTheDocument();
   });
 });

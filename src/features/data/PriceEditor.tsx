@@ -40,7 +40,7 @@ export default function PriceEditor(props: Props) {
 
   return (
     <Sheet
-      title={choosing ? (productFixed ? `${product?.name ?? ''}の値段を足す` : '値段を足す') : `${product?.name ?? ''}（${store?.name ?? ''}）`}
+      title={choosing ? '値段を足す' : `${product?.name ?? ''}（${store?.name ?? ''}）`}
       onClose={props.onClose}
       formId={store && product ? 'price-form' : undefined}
     >
@@ -53,7 +53,12 @@ export default function PriceEditor(props: Props) {
               options={storeOptions}
             />
           </div>
-          {!productFixed && (
+          {productFixed ? (
+            <div className="picker">
+              <span className="picker-label">商品</span>
+              <span className="picker-fixed">{product?.name ?? ''}</span>
+            </div>
+          ) : (
             <SearchPicker
               label="商品" value={productId} onChange={setProductId}
               options={[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'))}
