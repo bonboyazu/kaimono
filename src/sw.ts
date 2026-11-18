@@ -26,14 +26,14 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(title, {
       body: data.body ?? '',
       icon: `${self.registration.scope}icons/icon-192.png`,
-      data: { url: data.url ?? '#/list?mode=plan' },
+      data: { url: data.url ?? '#/list' },
     }),
   );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const hash = (event.notification.data?.url as string | undefined) ?? '#/list?mode=plan';
+  const hash = (event.notification.data?.url as string | undefined) ?? '#/list';
   const target = `${self.registration.scope}${hash}`;
   event.waitUntil(
     (async () => {

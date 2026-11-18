@@ -28,57 +28,8 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-const renderPlan = () =>
-  render(
-    <AuthContext.Provider value={{ user, auth: {} as AuthApi }}>
-      <MemoryRouter initialEntries={['/list?mode=plan']}><ListPage /></MemoryRouter>
-    </AuthContext.Provider>,
-  );
-
-describe('提案', () => {
-  it('日と店ごとにまとまり、セールと日を外したときの差額が出る', async () => {
-    renderPlan();
-    expect(await screen.findByText('11/15(日)〜11/21(土)')).toBeInTheDocument();
-    const wed = await screen.findByRole('list', { name: '11/18(水) A店' });
-    expect(within(wed).getByText('セール')).toBeInTheDocument();
-    expect(within(wed).getByText('水曜に行かないなら 今日 A店 198円（+100円）')).toBeInTheDocument();
-  });
-
-  it('日のボタンで外すと選び直され、一言が出る。押すと回り、元に戻せる', async () => {
-    const u = userEvent.setup();
-    renderPlan();
-    const days = await screen.findByRole('group', { name: '行く日' });
-    await u.click(within(days).getByRole('button', { name: '11/18(水)' }));
-    await waitFor(async () => expect((await db.excluded_dates.toArray()).map((d) => d.date)).toEqual(['2026-11-18']));
-    const today = await screen.findByRole('list', { name: '今日 A店' });
-    await u.click(within(today).getByRole('button', { name: 'B店なら 168円（−30円）' }));
-    const moved = await screen.findByRole('list', { name: '今日 B店' });
-    expect(within(moved).getByText('168円')).toBeInTheDocument();
-    await u.click(within(moved).getByRole('button', { name: '元に戻す' }));
-    expect(await screen.findByRole('list', { name: '今日 A店' })).toBeInTheDocument();
-  });
-
-  it('店のボタンで、今週だけ行く店を切り替えられる', async () => {
-    const u = userEvent.setup();
-    renderPlan();
-    const stores = await screen.findByRole('group', { name: '行く店' });
-    await u.click(within(stores).getByRole('button', { name: 'B店' }));
-    await waitFor(async () => expect((await db.store_overrides.toArray())[0]).toMatchObject({
-      store_id: 'B', going: true, expires_at: '2026-11-22T03:00:00.000Z',
-    }));
-    // 11/18 の A店 98円 のほうが安いので、卵は動かない。B店をもう一度押すと設定どおりに戻る
-    await u.click(within(stores).getByRole('button', { name: 'B店' }));
-    await waitFor(async () => expect((await db.store_overrides.toArray())[0].deleted_at).not.toBeNull());
-  });
-
-  it('チェックすると、買った店に選ばれた店が入る', async () => {
-    const u = userEvent.setup();
-    renderPlan();
-    await u.click(await screen.findByRole('button', { name: '卵をチェック' }));
-    await waitFor(async () => expect((await db.list_items.toArray())[0]).toMatchObject({ bought_store_id: 'A', checked_by: user.id }));
-  });
-
-  it('リストのモードでチェックしても、選ばれた店が入る', async () => {
+describe('リストの値段', () => {
+  it('チェックすると、いちばん安い店が買った店に入る', async () => {
     const u = userEvent.setup();
     render(
       <AuthContext.Provider value={{ user, auth: {} as AuthApi }}>
