@@ -21,16 +21,26 @@ type Props = {
 export default function PriceEditor(props: Props) {
   const stores = useRows('stores');
   const products = useRows('products');
+  const prices = useRows('prices');
   const [storeId, setStoreId] = useState(props.storeId ?? '');
   const [productId, setProductId] = useState(props.productId ?? '');
-  if (!stores || !products) return null;
+  if (!stores || !products || !prices) return null;
   const store = stores.find((s) => s.id === storeId);
   const product = products.find((p) => p.id === productId);
   const choosing = !props.storeId || !props.productId;
+  // 商品が決まって開いたとき（リスト・提案から）は、商品は変えず、まだ値段のない店だけ選ぶ
+  const productFixed = !!props.productId;
+  const priced = new Set(
+    productFixed ? prices.filter((p) => !p.deleted_at && p.product_id === props.productId).map((p) => p.store_id) : [],
+  );
+  const storeOptions = [...stores]
+    .filter((s) => !s.deleted_at && (!priced.has(s.id) || s.id === storeId))
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((s) => ({ value: s.id, label: s.name }));
 
   return (
     <Sheet
-      title={choosing ? '値段を足す' : `${product?.name ?? ''}（${store?.name ?? ''}）`}
+      title={choosing ? (productFixed ? `${product?.name ?? ''}の値段を足す` : '値段を足す') : `${product?.name ?? ''}（${store?.name ?? ''}）`}
       onClose={props.onClose}
       formId={store && product ? 'price-form' : undefined}
     >
@@ -40,15 +50,20 @@ export default function PriceEditor(props: Props) {
             <span className="picker-label">店</span>
             <Select
               label="店" value={storeId} onChange={setStoreId} placeholder="店を選ぶ"
-              options={[...stores].sort((a, b) => a.sort_order - b.sort_order).map((s) => ({ value: s.id, label: s.name }))}
+              options={storeOptions}
             />
           </div>
-          <SearchPicker
-            label="商品" value={productId} onChange={setProductId}
-            options={[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'))}
-          />
-          {stores.length === 0 && <p className="note">先に「＋」から店を足してください</p>}
-          {(!store || !product) && <p className="note">店と商品を選ぶと、値段を入れられます</p>}
+          {!productFixed && (
+            <SearchPicker
+              label="商品" value={productId} onChange={setProductId}
+              options={[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'))}
+            />
+          )}
+          {stores.length === 0 && <p className="note">先に「データ」の「＋」から店を足してください</p>}
+          {stores.length > 0 && storeOptions.length === 0 && <p className="note">すべての店に値段が入っています</p>}
+          {(!store || !product) && storeOptions.length > 0 && (
+            <p className="note">{productFixed ? '店を選ぶと、値段を入れられます' : '店と商品を選ぶと、値段を入れられます'}</p>
+          )}
         </div>
       )}
       {store && product && (

@@ -105,4 +105,18 @@ describe('提案', () => {
     await u.click(within(list).getByRole('button', { name: /B店/ }));
     expect(await screen.findByText('卵（B店）')).toBeInTheDocument();
   });
+
+  it('ほかの店の値段を入れるときは、商品は決まったまま、値段のない店だけ選べる', async () => {
+    const u = userEvent.setup();
+    render(
+      <AuthContext.Provider value={{ user, auth: {} as AuthApi }}>
+        <MemoryRouter initialEntries={['/list']}><ListPage /></MemoryRouter>
+      </AuthContext.Provider>,
+    );
+    await u.click(await screen.findByRole('button', { name: '卵' }));
+    await u.click(screen.getByRole('button', { name: '＋ ほかの店の値段を入れる' }));
+    const dialog = await screen.findByRole('dialog', { name: '卵の値段を足す' });
+    expect(within(dialog).queryByText('商品')).toBeNull();
+    expect(within(dialog).getByText('すべての店に値段が入っています')).toBeInTheDocument();
+  });
 });
