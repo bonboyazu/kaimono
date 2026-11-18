@@ -45,7 +45,7 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
     <Sheet title="買うものを追加" onClose={onClose}>
       <div className="form-grid">
         <input
-          type="search" aria-label="商品を探す" placeholder="商品名で探す" value={query} autoFocus
+          type="search" aria-label="商品を探す" placeholder="商品名で探す" value={query}
           onChange={(e) => { setQuery(e.target.value); setAdded(null); }}
         />
         {added && <p className="added-note" role="status">「{added}」をリストに入れました</p>}
