@@ -3,6 +3,8 @@ import { db } from '../../data/db.ts';
 import { countStatus } from '../../data/sync/engine.ts';
 import Header from '../../ui/Header.tsx';
 import NotificationSettings from './NotificationSettings.tsx';
+import StoreSetting from './StoreSetting.tsx';
+import WeekdaySetting from './WeekdaySetting.tsx';
 
 export default function SettingsPage() {
   const { user, auth } = useAuth();
@@ -22,6 +24,8 @@ export default function SettingsPage() {
     <>
       <Header title="設定" />
       <main className="page">
+        <WeekdaySetting />
+        <StoreSetting />
         <NotificationSettings />
         <section className="card">
           <h2>ログイン中</h2>

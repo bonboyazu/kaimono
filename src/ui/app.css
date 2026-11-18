@@ -389,3 +389,27 @@ button.danger { color: var(--color-warn); }
 .add-list button { width: 100%; border: none; border-radius: 0; display: flex; justify-content: space-between; align-items: center; text-align: left; }
 .add-list button[aria-pressed='true'] { background: #eef6f1; }
 .add-list .add-new { color: var(--color-primary); font-weight: 600; }
+
+/* 設定：店の優先順と扱い */
+.store-setting { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.store-setting-head { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.store-setting-name { flex: 1; font-weight: 600; }
+.store-setting-head button { width: 44px; padding: 0; }
+.store-setting .mode-switch { margin-bottom: 0; }
+.store-setting .mode-switch button { font-size: 14px; padding-left: 0; padding-right: 0; }
+
+/* 提案 */
+.mode-switch button + button { border-left: none; }
+.plan > .chips { margin-bottom: var(--space-3); }
+.plan-period { margin: 0 0 var(--space-2); font-weight: 600; }
+.plan-day { margin-top: var(--space-5); }
+.plan-date { display: flex; align-items: center; gap: var(--space-2); font-size: 18px; margin: 0 0 var(--space-2); }
+.plan-store { margin-bottom: var(--space-3); }
+.plan-store-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.plan-store-head h3 { font-size: 15px; margin: 0; color: var(--color-muted); }
+.plan-line { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: var(--tap); }
+.plan-name { flex: 1; }
+.plan-price { display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap; }
+.plan-hint { display: block; font-size: 13px; color: var(--color-muted); }
+.plan-tip { display: block; font-size: 14px; padding-left: 0; text-align: left; min-height: 36px; }
+.badge.sale { color: var(--color-warn); border-color: var(--color-warn); }
