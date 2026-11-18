@@ -46,13 +46,11 @@ export default function PriceEditor(props: Props) {
     >
       {choosing && (
         <div className="form-grid">
-          <div className="picker">
-            <span className="picker-label">店</span>
-            <Select
-              label="店" value={storeId} onChange={setStoreId} placeholder="店を選ぶ"
-              options={storeOptions}
-            />
-          </div>
+          {stores.length === 0 && <p className="note">先に「データ」の「＋」から店を足してください</p>}
+          {stores.length > 0 && storeOptions.length === 0 && <p className="note">すべての店に値段が入っています</p>}
+          {(!store || !product) && storeOptions.length > 0 && (
+            <p className="note">{productFixed ? '店を選ぶと、値段を入れられます' : '店と商品を選ぶと、値段を入れられます'}</p>
+          )}
           {productFixed ? (
             <div className="picker">
               <span className="picker-label">商品</span>
@@ -64,11 +62,13 @@ export default function PriceEditor(props: Props) {
               options={[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'))}
             />
           )}
-          {stores.length === 0 && <p className="note">先に「データ」の「＋」から店を足してください</p>}
-          {stores.length > 0 && storeOptions.length === 0 && <p className="note">すべての店に値段が入っています</p>}
-          {(!store || !product) && storeOptions.length > 0 && (
-            <p className="note">{productFixed ? '店を選ぶと、値段を入れられます' : '店と商品を選ぶと、値段を入れられます'}</p>
-          )}
+          <div className="picker">
+            <span className="picker-label">店</span>
+            <Select
+              label="店" value={storeId} onChange={setStoreId} placeholder="店を選ぶ"
+              options={storeOptions}
+            />
+          </div>
         </div>
       )}
       {store && product && (
