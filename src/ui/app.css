@@ -421,6 +421,7 @@ button.danger { color: var(--color-warn); }
 
 /* 設定：オン・オフのスイッチ */
 .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 44px; }
+.toggle-row h2 { margin: 0; }
 .toggle { position: relative; width: 52px; height: 32px; min-height: 32px; padding: 0; -webkit-appearance: none; appearance: none; border-radius: 16px; border: none; background: #c9ccd1; transition: background-color 0.2s ease; flex: none; }
 .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease; }
 .toggle[aria-checked='true'] { background: var(--color-primary); }

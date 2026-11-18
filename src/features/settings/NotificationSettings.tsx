@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { disablePush, pushEnv, pushOn, sendTestPush, subscribePush } from '../../data/push.ts';
+import { disablePush, pushEnv, pushOn, subscribePush } from '../../data/push.ts';
 
 type Env = { standalone: boolean; supported: boolean };
 
@@ -32,29 +32,24 @@ export default function NotificationSettings({ env = pushEnv(), initialOn }: { e
     }
   };
 
+  const usable = env.standalone && env.supported;
+
   return (
     <section className="card">
-      <h2>通知</h2>
+      <div className="toggle-row">
+        <h2 id="push-label">通知</h2>
+        {usable && (
+          <button
+            type="button" role="switch" className="toggle" aria-checked={on} aria-labelledby="push-label"
+            disabled={busy} onClick={() => void toggle()}
+          />
+        )}
+      </div>
       {!env.standalone ? (
         <p className="note">ホーム画面に追加してから開いてください</p>
       ) : !env.supported ? (
         <p className="note">この端末では通知を使えません（iOS 16.4 以降が必要です）</p>
-      ) : (
-        <>
-          <div className="toggle-row">
-            <span id="push-label">通知を受け取る</span>
-            <button
-              type="button" role="switch" className="toggle" aria-checked={on} aria-labelledby="push-label"
-              disabled={busy} onClick={() => void toggle()}
-            />
-          </div>
-          {on && (
-            <button type="button" disabled={busy} onClick={() => void run(sendTestPush, '送りました')}>
-              試しの通知を送る
-            </button>
-          )}
-        </>
-      )}
+      ) : null}
       {message && <p className="note" role="status">{message}</p>}
     </section>
   );
