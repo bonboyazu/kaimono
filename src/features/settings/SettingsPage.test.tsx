@@ -57,8 +57,8 @@ describe('店', () => {
     const u = userEvent.setup();
     render(<StoreSetting />);
     const group = await screen.findByRole('group', { name: 'A店の扱い' });
-    await u.click(within(group).getByRole('button', { name: '常に外す' }));
-    await waitFor(async () => expect((await db.stores.get('a'))!.visit_mode).toBe('never'));
-    await waitFor(() => expect(within(group).getByRole('button', { name: '常に外す' })).toHaveAttribute('aria-pressed', 'true'));
+    await u.click(within(group).getByRole('button', { name: 'ふだん行かない' }));
+    await waitFor(async () => expect((await db.stores.get('a'))!.visit_mode).toBe('other'));
+    await waitFor(() => expect(within(group).getByRole('button', { name: 'ふだん行かない' })).toHaveAttribute('aria-pressed', 'true'));
   });
 });

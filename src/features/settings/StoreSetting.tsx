@@ -1,4 +1,4 @@
-// 店の優先順（上下に動かす）と、店ごとの扱い（ふだん行く／ふだん行かない／常に外す）
+// 店の優先順（上下に動かす）と、店ごとの扱い（ふだん行く／ふだん行かない）
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRows } from '../../data/hooks.ts';
 import type { VisitMode } from '../../domain/types.ts';
@@ -7,7 +7,6 @@ import { moveStore, setVisitMode } from './actions.ts';
 const MODES: { mode: VisitMode; label: string }[] = [
   { mode: 'usual', label: 'ふだん行く' },
   { mode: 'other', label: 'ふだん行かない' },
-  { mode: 'never', label: '常に外す' },
 ];
 
 export default function StoreSetting() {
