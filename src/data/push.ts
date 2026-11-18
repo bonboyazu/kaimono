@@ -29,8 +29,7 @@ export function pushEnv() {
     (navigator as Navigator & { standalone?: boolean }).standalone === true ||
     window.matchMedia?.('(display-mode: standalone)').matches === true;
   const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-  const permission: NotificationPermission = supported ? Notification.permission : 'default';
-  return { standalone, supported, permission };
+  return { standalone, supported };
 }
 
 export function savedEndpoint(): string | null {
@@ -95,26 +94,4 @@ export async function sendTestPush(): Promise<{ ok: boolean; message: string }> 
   const { error } = await getSupabase().functions.invoke('send-test-push', { body: { endpoint } });
   if (error) return { ok: false, message: `送れませんでした（${error.message}）` };
   return { ok: true, message: '送りました。数秒で届きます' };
-}
-
-/** この端末の宛先の設定をサーバーから読む。宛先がなければ null */
-export async function loadPushSetting(): Promise<{ enabled: boolean; notify_time: string } | null> {
-  const endpoint = savedEndpoint();
-  if (!endpoint) return null;
-  const { data, error } = await getSupabase()
-    .from('push_subscriptions')
-    .select('enabled, notify_time')
-    .eq('endpoint', endpoint)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data;
-}
-
-/** 通知の時刻を変える（'HH:MM'。15分きざみ） */
-export async function setNotifyTime(time: string): Promise<{ ok: true } | { ok: false; message: string }> {
-  const endpoint = savedEndpoint();
-  if (!endpoint) return { ok: false, message: '先に通知をオンにしてください' };
-  const { error } = await getSupabase().from('push_subscriptions').update({ notify_time: time }).eq('endpoint', endpoint);
-  if (error) return { ok: false, message: `変えられませんでした（${error.message}）` };
-  return { ok: true };
 }
