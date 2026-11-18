@@ -6,7 +6,8 @@ import { check, removeItem, saveMemo, uncheck } from './actions.ts';
 
 const SWIPE = 72;
 
-export default function ItemRow({ item, product }: { item: ListItem; product: Product | undefined }) {
+/** storeId：チェックしたときに「買った店」として入れる店（提案で選ばれた店） */
+export default function ItemRow({ item, product, storeId = null }: { item: ListItem; product: Product | undefined; storeId?: string | null }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [memo, setMemo] = useState(item.memo);
@@ -47,7 +48,7 @@ export default function ItemRow({ item, product }: { item: ListItem; product: Pr
         <button
           type="button" className="item-check" aria-label={checked ? `${name}を戻す` : `${name}をチェック`}
           aria-pressed={checked}
-          onClick={() => (checked ? uncheck(item) : check(item, user?.id ?? null))}
+          onClick={() => (checked ? uncheck(item) : check(item, user?.id ?? null, storeId))}
         >
           <span aria-hidden="true">{checked ? '✓' : ''}</span>
         </button>

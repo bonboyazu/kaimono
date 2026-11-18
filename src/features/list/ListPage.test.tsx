@@ -73,9 +73,9 @@ describe('リスト', () => {
     await waitFor(() => expect(screen.getAllByRole('button', { name: '牛乳をチェック' })).toHaveLength(1), { timeout: 3000 });
   });
 
-  it('提案は準備中と出る', async () => {
+  it('提案に切り替えると、提案の画面が出る', async () => {
     renderPage('/list?mode=plan');
-    expect(await screen.findByText('提案は準備中です')).toBeInTheDocument();
+    expect(await screen.findByRole('group', { name: '行く日' })).toBeInTheDocument();
   });
 });
 

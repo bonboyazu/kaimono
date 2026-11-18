@@ -1,9 +1,10 @@
 // リストの書き込み。画面からはここを呼ぶ
 import { db as defaultDb } from '../../data/db.ts';
 import { createRow, patchRow, softDelete, type MutateContext } from '../../data/sync/mutate.ts';
-import { newId } from '../../domain/ids.ts';
+import { addDays } from '../../domain/dates.ts';
+import { excludedDateId, newId, storeOverrideId } from '../../domain/ids.ts';
 import { normalizeName } from '../../domain/similar.ts';
-import type { ListItem } from '../../domain/types.ts';
+import type { ListItem, Store } from '../../domain/types.ts';
 import { addProduct } from '../data/actions.ts';
 
 const defaultCtx: MutateContext = { db: defaultDb, now: () => new Date().toISOString() };
@@ -32,9 +33,9 @@ export async function addNewProductToList(name: string, userId: string | null, c
   await addToList(id, userId, ctx);
 }
 
-export function check(item: ListItem, userId: string | null, ctx: MutateContext = defaultCtx) {
-  // 買った店は段階4で、提案が割り当てた店を入れる
-  return patchRow('list_items', item.id, { checked_at: ctx.now(), checked_by: userId, bought_store_id: null }, ctx);
+/** 買った店には、提案で選ばれた店を入れる（店が未定なら null） */
+export function check(item: ListItem, userId: string | null, storeId: string | null = null, ctx: MutateContext = defaultCtx) {
+  return patchRow('list_items', item.id, { checked_at: ctx.now(), checked_by: userId, bought_store_id: storeId }, ctx);
 }
 
 export function uncheck(item: ListItem, ctx: MutateContext = defaultCtx) {
@@ -47,3 +48,30 @@ export function saveMemo(item: ListItem, memo: string, ctx: MutateContext = defa
 }
 
 export const removeItem = (item: ListItem, ctx: MutateContext = defaultCtx) => softDelete('list_items', item.id, ctx);
+
+/** 提案の日を外す・戻す。外した日は excluded_dates に入れる */
+export async function toggleDate(date: string, ctx: MutateContext = defaultCtx): Promise<void> {
+  const id = await excludedDateId(date);
+  const row = await ctx.db.excluded_dates.get(id);
+  if (row && !row.deleted_at) await softDelete('excluded_dates', id, ctx);
+  else await createRow('excluded_dates', { id, date }, ctx);
+}
+
+/** 今週だけ、その店に行く・行かないを今と逆にする。期限は今から7日後。設定と同じに戻ったら消す */
+export async function toggleStoreThisWeek(store: Store, goingNow: boolean, ctx: MutateContext = defaultCtx): Promise<void> {
+  const id = await storeOverrideId(store.id);
+  const going = !goingNow;
+  if (going === (store.visit_mode === 'usual')) {
+    const row = await ctx.db.store_overrides.get(id);
+    if (row && !row.deleted_at) await softDelete('store_overrides', id, ctx);
+    return;
+  }
+  const now = ctx.now();
+  const expires_at = `${addDays(now.slice(0, 10), 7)}${now.slice(10)}`;
+  await createRow('store_overrides', { id, store_id: store.id, going, expires_at }, ctx);
+}
+
+/** その商品だけ、ほかの店に回す（null で元に戻す） */
+export function forceStore(item: ListItem, storeId: string | null, ctx: MutateContext = defaultCtx) {
+  return patchRow('list_items', item.id, { forced_store_id: storeId }, ctx);
+}

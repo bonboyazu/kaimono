@@ -1,4 +1,4 @@
-// 買い物リスト。上で「リスト／提案」を切り替える（提案は段階4）
+// 買い物リスト。上で「リスト／提案」を切り替える
 import { useEffect, useMemo, useState } from 'react';
 import { useRows } from '../../data/hooks.ts';
 import { softDelete } from '../../data/sync/mutate.ts';
@@ -7,6 +7,8 @@ import Header from '../../ui/Header.tsx';
 import AddSheet from './AddSheet.tsx';
 import ItemRow from './ItemRow.tsx';
 import ModeSwitch, { useMode } from './ModeSwitch.tsx';
+import PlanView from './PlanView.tsx';
+import { chosenStoreOf, usePlan } from './usePlan.ts';
 
 /** 日付が変わったら「買ったもの」を消すため、1分ごとと前に出たときに時刻を取り直す */
 function useNow(): Date {
@@ -29,6 +31,7 @@ export default function ListPage() {
   const products = useRows('products');
   const [adding, setAdding] = useState(false);
   const now = useNow();
+  const plan = usePlan(now);
 
   // 2台で同時に同じ商品を足したとき、新しいほうを片付ける
   useEffect(() => {
@@ -45,7 +48,7 @@ export default function ListPage() {
       <main className="page">
         <ModeSwitch mode={mode} onChange={setMode} />
         {mode === 'plan' ? (
-          <p className="note empty">提案は準備中です</p>
+          <PlanView plan={plan} now={now} />
         ) : (
           <>
             <button type="button" className="search-trigger" onClick={() => setAdding(true)}>
@@ -53,7 +56,7 @@ export default function ListPage() {
             </button>
             {items && toBuy.length === 0 && <p className="note empty">リストは空です。上から商品を足してください</p>}
             <ul className="item-list" aria-label="買うもの">
-              {toBuy.map((i) => <ItemRow key={i.id} item={i} product={productOf.get(i.product_id)} />)}
+              {toBuy.map((i) => <ItemRow key={i.id} item={i} product={productOf.get(i.product_id)} storeId={chosenStoreOf(plan, i.id)} />)}
             </ul>
             {boughtToday.length > 0 && (
               <>
