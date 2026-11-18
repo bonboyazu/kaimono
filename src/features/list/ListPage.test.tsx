@@ -45,22 +45,21 @@ describe('リスト', () => {
     expect((await db.list_items.toArray())[0]).toMatchObject({ checked_at: null, checked_by: null });
   });
 
-  it('名前を押すとメモの欄が開き、保存される', async () => {
+  it('左にずらして「メモ」を押すと、メモを書いて保存できる', async () => {
     await addToList(ids['卵'], user.id);
     const u = userEvent.setup();
     renderPage();
-    await u.click(await screen.findByRole('button', { name: '卵' }));
+    await u.click(await screen.findByRole('button', { name: '卵のメモを書く' }));
     await u.type(screen.getByLabelText('卵のメモ'), '10個入り{Enter}');
     await waitFor(async () => expect((await db.list_items.toArray())[0].memo).toBe('10個入り'));
     expect(await screen.findByText('10個入り')).toBeInTheDocument();
   });
 
-  it('リストから外せる', async () => {
+  it('左にずらして「外す」で、リストから外せる', async () => {
     await addToList(ids['卵'], user.id);
     const u = userEvent.setup();
     renderPage();
-    await u.click(await screen.findByRole('button', { name: '卵' }));
-    await u.click(screen.getByRole('button', { name: 'リストから外す' }));
+    await u.click(await screen.findByRole('button', { name: '卵をリストから外す' }));
     await waitFor(() => expect(screen.queryByRole('button', { name: '卵をチェック' })).toBeNull());
   });
 

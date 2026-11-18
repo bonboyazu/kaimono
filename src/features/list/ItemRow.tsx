@@ -1,12 +1,13 @@
-// リストの1行。左がチェック。行を押すと、店の安い順・メモ・リストから外すが開く。左にずらしても「外す」
+// リストの1行。左がチェック。行を押すと店の安い順が開く。左にずらすと「メモ」と「外す」
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../data/auth.ts';
 import type { StoreRank } from '../../domain/ranking.ts';
 import type { ListItem, Product } from '../../domain/types.ts';
 import { check, removeItem, saveMemo, uncheck } from './actions.ts';
+import Sheet from '../../ui/Sheet.tsx';
 import PriceRanking from './PriceRanking.tsx';
 
-const SWIPE = 72;
+const SWIPE = 144;
 
 type Prices = {
   ranks: StoreRank[];
@@ -14,20 +15,21 @@ type Prices = {
   onOpenPrice: (storeId: string | null, productId: string) => void;
 };
 
-/** storeId：チェックしたときに「買った店」として入れる店（提案で選ばれた店）。prices があれば右に安い店を出す */
+/** storeId：チェックしたときに「買った店」として入れる店（提案で選ばれた店）。prices があれば、押すと店の安い順を出す */
 export default function ItemRow({ item, product, storeId = null, prices }: {
   item: ListItem; product: Product | undefined; storeId?: string | null; prices?: Prices;
 }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [memo, setMemo] = useState(item.memo);
   const [shift, setShift] = useState(0);
   const startX = useRef<number | null>(null);
   const checked = !!item.checked_at;
-  // もう片方の端末でメモが変わったら、閉じている間は合わせる
+  // もう片方の端末でメモが変わったら、書いていない間は合わせる
   useEffect(() => {
-    if (!open) setMemo(item.memo);
-  }, [item.memo, open]);
+    if (!editing) setMemo(item.memo);
+  }, [item.memo, editing]);
   const name = product?.name ?? '（消した商品）';
   const showPrices = !!prices && !!product && !checked;
 
@@ -45,12 +47,20 @@ export default function ItemRow({ item, product, storeId = null, prices }: {
     setShift((s) => (s < -SWIPE / 2 ? -SWIPE : 0));
   };
 
+  const actionTab = shift ? 0 : -1;
+  const startMemo = () => { setShift(0); setEditing(true); };
+
   return (
     <li className={`item-row${checked ? ' checked' : ''}`}>
       {!checked && (
-        <button type="button" className="item-remove" tabIndex={shift ? 0 : -1} onClick={() => removeItem(item)}>
-          外す
-        </button>
+        <div className="item-actions">
+          <button type="button" className="item-memo-btn" tabIndex={actionTab} aria-label={`${name}のメモを書く`} onClick={startMemo}>
+            メモ
+          </button>
+          <button type="button" className="item-remove" tabIndex={actionTab} aria-label={`${name}をリストから外す`} onClick={() => removeItem(item)}>
+            外す
+          </button>
+        </div>
       )}
       <div
         className="item-body" style={{ transform: `translateX(${shift}px)` }}
@@ -64,42 +74,47 @@ export default function ItemRow({ item, product, storeId = null, prices }: {
           <span aria-hidden="true">{checked ? '✓' : ''}</span>
         </button>
         <div className="item-main">
-          <button
-            type="button" className="item-line" aria-expanded={open} aria-label={name}
-            onClick={() => { setShift(0); setOpen((o) => !o); }}
-          >
-            <span className="item-name">
-              {name}
-              {!open && item.memo && <span className="item-memo">{item.memo}</span>}
-            </span>
-            <span className="item-open-mark" aria-hidden="true">{open ? '▾' : '▸'}</span>
-          </button>
-          {open && (
-            <div className="item-panel">
-              {showPrices && (
-                <PriceRanking product={product} ranks={prices.ranks} storeName={prices.storeName} onOpenPrice={prices.onOpenPrice} />
-              )}
-              <div className="item-edit">
-                <input
-                  type="text" aria-label={`${name}のメモ`} placeholder="メモ（例：300g）" value={memo} enterKeyHint="done"
-                  onChange={(e) => setMemo(e.target.value)}
-                  onBlur={() => void saveMemo(item, memo.trim())}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      void saveMemo(item, memo.trim());
-                      setOpen(false);
-                    }
-                  }}
-                />
-                {!checked && (
-                  <button type="button" className="plain danger" onClick={() => removeItem(item)}>リストから外す</button>
-                )}
-              </div>
+          {showPrices ? (
+            <button
+              type="button" className="item-line" aria-expanded={open} aria-label={name}
+              onClick={() => { if (shift) setShift(0); else setOpen((o) => !o); }}
+            >
+              <span className="item-name">
+                {name}
+                {item.memo && <span className="item-memo">{item.memo}</span>}
+              </span>
+              <span className="item-open-mark" aria-hidden="true">{open ? '▾' : '▸'}</span>
+            </button>
+          ) : (
+            <div className="item-line">
+              <span className="item-name">
+                {name}
+                {item.memo && <span className="item-memo">{item.memo}</span>}
+              </span>
             </div>
+          )}
+          {open && showPrices && (
+            <PriceRanking product={product} ranks={prices.ranks} storeName={prices.storeName} onOpenPrice={prices.onOpenPrice} />
           )}
         </div>
       </div>
+      {editing && (
+        <Sheet title={`メモ：${name}`} onClose={() => setEditing(false)} formId="memo-form">
+          <form
+            id="memo-form" className="form-grid"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void saveMemo(item, memo.trim());
+              setEditing(false);
+            }}
+          >
+            <input
+              type="text" aria-label={`${name}のメモ`} placeholder="メモ（例：300g・2パック）" value={memo} autoFocus enterKeyHint="done"
+              onChange={(e) => setMemo(e.target.value)}
+            />
+          </form>
+        </Sheet>
+      )}
     </li>
   );
 }
