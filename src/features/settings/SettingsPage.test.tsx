@@ -49,7 +49,7 @@ describe('店', () => {
       expect(Object.fromEntries(s.map((x) => [x.name, x.sort_order]))).toEqual({ A店: 0, C店: 1, B店: 2 });
     });
     const list = screen.getByRole('list', { name: '店の優先順' });
-    await waitFor(() => expect(within(list).getAllByRole('listitem').map((li) => li.textContent?.slice(0, 2))).toEqual(['A店', 'C店', 'B店']));
+    await waitFor(() => expect(within(list).getAllByRole('listitem').map((li) => li.querySelector('.store-setting-name')?.textContent)).toEqual(['A店', 'C店', 'B店']));
   });
 
   it('店の扱いを選べる', async () => {
@@ -59,6 +59,6 @@ describe('店', () => {
     const group = await screen.findByRole('group', { name: 'A店の扱い' });
     await u.click(within(group).getByRole('button', { name: '常に外す' }));
     await waitFor(async () => expect((await db.stores.get('a'))!.visit_mode).toBe('never'));
-    expect(within(group).getByRole('button', { name: '常に外す' })).toHaveAttribute('aria-pressed', 'true');
+    await waitFor(() => expect(within(group).getByRole('button', { name: '常に外す' })).toHaveAttribute('aria-pressed', 'true'));
   });
 });

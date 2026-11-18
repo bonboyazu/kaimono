@@ -2,6 +2,27 @@
 import { getSupabase } from './supabase.ts';
 
 const ENDPOINT_KEY = 'kaimono:push-endpoint';
+const ON_KEY = 'kaimono:push-on';
+
+/** この端末で通知をオンにしているか */
+export function pushOn(): boolean {
+  try {
+    if (Notification.permission !== 'granted') return false;
+    const v = localStorage.getItem(ON_KEY);
+    // スイッチを作る前に「通知を受け取る」を押した端末は、オンとみなす
+    return v === null ? localStorage.getItem(ENDPOINT_KEY) !== null : v === '1';
+  } catch {
+    return false;
+  }
+}
+
+function setPushOn(on: boolean) {
+  try {
+    localStorage.setItem(ON_KEY, on ? '1' : '0');
+  } catch {
+    // 残せなくても続ける
+  }
+}
 
 export function pushEnv() {
   const standalone =
@@ -52,12 +73,24 @@ export async function subscribePush(): Promise<{ ok: true } | { ok: false; messa
   } catch {
     // 残せなくても続ける
   }
+  setPushOn(true);
+  return { ok: true };
+}
+
+/** 通知を止める。宛先は残し、送らない印を付ける */
+export async function disablePush(): Promise<{ ok: true } | { ok: false; message: string }> {
+  const endpoint = savedEndpoint();
+  if (endpoint) {
+    const { error } = await getSupabase().from('push_subscriptions').update({ enabled: false }).eq('endpoint', endpoint);
+    if (error) return { ok: false, message: `止められませんでした（${error.message}）` };
+  }
+  setPushOn(false);
   return { ok: true };
 }
 
 export async function sendTestPush(): Promise<{ ok: boolean; message: string }> {
   const endpoint = savedEndpoint();
-  if (!endpoint) return { ok: false, message: '先に「通知を受け取る」を押してください' };
+  if (!endpoint) return { ok: false, message: '先に通知をオンにしてください' };
   const { error } = await getSupabase().functions.invoke('send-test-push', { body: { endpoint } });
   if (error) return { ok: false, message: `送れませんでした（${error.message}）` };
   return { ok: true, message: '送りました。数秒で届きます' };

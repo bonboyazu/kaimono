@@ -41,7 +41,7 @@ describe('提案', () => {
     expect(await screen.findByText('11/15(日)〜11/21(土)')).toBeInTheDocument();
     const wed = await screen.findByRole('list', { name: '11/18(水) A店' });
     expect(within(wed).getByText('セール')).toBeInTheDocument();
-    expect(within(wed).getByText('水曜を外すと 今日 A店 198円（+100円）')).toBeInTheDocument();
+    expect(within(wed).getByText('水曜に行かないなら 今日 A店 198円（+100円）')).toBeInTheDocument();
   });
 
   it('日のボタンで外すと選び直され、一言が出る。押すと回り、元に戻せる', async () => {

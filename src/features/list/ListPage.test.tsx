@@ -106,6 +106,16 @@ describe('商品を足す', () => {
     expect(within(list).queryByRole('button', { name: '卵' })).toBeNull();
   });
 
+  it('探して足すと、検索が空になり、足したことが出る', async () => {
+    const u = userEvent.setup();
+    renderPage();
+    await u.click(await screen.findByRole('button', { name: /商品を足す/ }));
+    await u.type(screen.getByLabelText('商品を探す'), 'きゃべ');
+    await u.click(await within(screen.getByRole('list', { name: '候補' })).findByRole('button', { name: 'キャベツ' }));
+    expect(await screen.findByText('「キャベツ」をリストに入れました')).toBeInTheDocument();
+    expect(screen.getByLabelText('商品を探す')).toHaveValue('');
+  });
+
   it('ない商品はその場で足せる（1つあたり・食品）', async () => {
     const u = userEvent.setup();
     renderPage();

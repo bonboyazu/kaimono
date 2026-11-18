@@ -40,10 +40,10 @@ export default function PlanItemRow({ p, today, storeName, showStoreAlt, onOpenP
             </button>
           </div>
           {item.memo && <span className="item-memo">{item.memo}</span>}
-          {storeAlt && <span className="plan-hint">外すと {altText(storeAlt, storeName(storeAlt.store_id), product)}</span>}
+          {storeAlt && <span className="plan-hint">この店に行かないなら {altText(storeAlt, storeName(storeAlt.store_id), product)}</span>}
           {dateAlt && chosen && (
             <span className="plan-hint">
-              {WEEKDAYS[weekdayOf(chosen.date)]}曜を外すと {dayLabel(dateAlt.date, today)} {altText(dateAlt, storeName(dateAlt.store_id), product)}
+              {WEEKDAYS[weekdayOf(chosen.date)]}曜に行かないなら {dayLabel(dateAlt.date, today)} {altText(dateAlt, storeName(dateAlt.store_id), product)}
             </span>
           )}
           {item.forced_store_id ? (

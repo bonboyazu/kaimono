@@ -394,6 +394,9 @@ button.danger { color: var(--color-warn); }
 .store-setting { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
 .store-setting-head { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
 .store-setting-name { flex: 1; font-weight: 600; }
+.store-setting > li { position: relative; margin: 0 calc(-1 * var(--space-2)); padding: var(--space-2); border-radius: var(--radius); background: var(--color-surface); transition: background-color 0.6s ease; }
+.store-setting > li.moved { background: #eef6f1; transition: none; z-index: 1; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); }
+.store-setting-rank { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; background: var(--color-primary); color: var(--color-primary-text); }
 .store-setting-head button { width: 44px; padding: 0; }
 .store-setting .mode-switch { margin-bottom: 0; }
 .store-setting .mode-switch button { font-size: 14px; padding-left: 0; padding-right: 0; }
@@ -413,3 +416,17 @@ button.danger { color: var(--color-warn); }
 .plan-hint { display: block; font-size: 13px; color: var(--color-muted); }
 .plan-tip { display: block; font-size: 14px; padding-left: 0; text-align: left; min-height: 36px; }
 .badge.sale { color: var(--color-warn); border-color: var(--color-warn); }
+
+/* 設定：オン・オフのスイッチ */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 44px; }
+.toggle { position: relative; width: 52px; height: 32px; padding: 0; border-radius: 16px; border: none; background: #c9ccd1; transition: background-color 0.2s ease; flex: none; }
+.toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease; }
+.toggle[aria-checked='true'] { background: var(--color-primary); }
+.toggle[aria-checked='true']::after { transform: translateX(20px); }
+.toggle:disabled { opacity: 0.6; }
+
+/* リストに足したときの知らせ */
+.added-note { margin: 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius); background: #eef6f1; color: var(--color-primary); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  .toggle, .toggle::after, .store-setting > li { transition: none; }
+}
