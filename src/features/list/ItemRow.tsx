@@ -4,7 +4,6 @@ import { useAuth } from '../../data/auth.ts';
 import type { StoreRank } from '../../domain/ranking.ts';
 import type { ListItem, Product } from '../../domain/types.ts';
 import { check, removeItem, saveMemo, uncheck } from './actions.ts';
-import { cheapestText } from './planText.ts';
 import PriceRanking from './PriceRanking.tsx';
 
 const SWIPE = 72;
@@ -73,11 +72,6 @@ export default function ItemRow({ item, product, storeId = null, prices }: {
               {name}
               {!open && item.memo && <span className="item-memo">{item.memo}</span>}
             </span>
-            {showPrices && (
-              <span className="item-cheapest">
-                <span className={prices.ranks.length === 0 ? 'note' : undefined}>{cheapestText(prices.ranks, prices.storeName, product)}</span>
-              </span>
-            )}
             <span className="item-open-mark" aria-hidden="true">{open ? '▾' : '▸'}</span>
           </button>
           {open && (

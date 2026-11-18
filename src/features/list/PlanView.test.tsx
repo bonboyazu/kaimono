@@ -89,7 +89,7 @@ describe('提案', () => {
     await waitFor(async () => expect((await db.list_items.toArray())[0].bought_store_id).toBe('A'));
   });
 
-  it('リストの行の右に安い店が出て、行を押すと店の安い順・メモ・外すが開く', async () => {
+  it('リストの行に値段は出さず、行を押すと店の安い順・メモ・外すが開く', async () => {
     const u = userEvent.setup();
     render(
       <AuthContext.Provider value={{ user, auth: {} as AuthApi }}>
@@ -97,7 +97,7 @@ describe('提案', () => {
       </AuthContext.Provider>,
     );
     const btn = await screen.findByRole('button', { name: '卵' });
-    expect(btn).toHaveTextContent('A店 98円（水）');
+    expect(btn).not.toHaveTextContent('円');
     await u.click(btn);
     expect(screen.getByLabelText('卵のメモ')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'リストから外す' })).toBeInTheDocument();
