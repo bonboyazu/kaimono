@@ -14,12 +14,6 @@ export function parseAmount(text: string): number | null {
   return n >= 1 && Number.isSafeInteger(n) ? n : null;
 }
 
-/** 税込・税抜を変えたら、店の初期値も同じにする */
-async function rememberTaxMode(store: Store, mode: TaxMode, ctx: MutateContext) {
-  const current = await ctx.db.stores.get(store.id);
-  if (current && current.default_tax_mode !== mode) await patchRow('stores', store.id, { default_tax_mode: mode }, ctx);
-}
-
 export async function savePrice(
   store: Store,
   product: Product,
@@ -32,7 +26,6 @@ export async function savePrice(
   const fields = { amount, tax_mode: taxMode, price_updated_at: ctx.now() };
   if (existing && !existing.deleted_at) await patchRow('prices', id, fields, ctx);
   else await createRow('prices', { id, store_id: store.id, product_id: product.id, ...fields }, ctx);
-  await rememberTaxMode(store, taxMode, ctx);
 }
 
 export async function deletePrice(price: Price, sales: SalePrice[], ctx: MutateContext = defaultCtx) {
@@ -66,8 +59,6 @@ export async function saveSales(
       await createRow('sale_prices', { id, store_id: store.id, product_id: product.id, ...s }, ctx);
     }
   }
-  const last = sales.at(-1);
-  if (last) await rememberTaxMode(store, last.tax_mode, ctx);
 }
 
 const sameName = (a: string, b: string) => a.trim() === b.trim();
@@ -104,20 +95,32 @@ export async function updateProduct(
   await patchRow('products', product.id, patch, ctx);
 }
 
-export async function addStore(nameInput: string, ctx: MutateContext = defaultCtx): Promise<string> {
+/** 店の税込・税抜は、値段を入れるときの初期値になる */
+export async function addStore(
+  nameInput: string,
+  ctx: MutateContext = defaultCtx,
+  taxMode: TaxMode = 'included',
+): Promise<string> {
   const name = nameInput.trim();
   if (!name) throw new Error('名前を入れてください');
   const all = (await ctx.db.stores.toArray()).filter((s) => !s.deleted_at);
   const sort_order = all.reduce((m, s) => Math.max(m, s.sort_order), 0) + 1;
   const id = newId();
-  await createRow('stores', { id, name, sort_order, visit_mode: 'usual', default_tax_mode: 'included' }, ctx);
+  await createRow('stores', { id, name, sort_order, visit_mode: 'usual', default_tax_mode: taxMode }, ctx);
   return id;
 }
 
-export async function renameStore(store: Store, nameInput: string, ctx: MutateContext = defaultCtx) {
-  const name = nameInput.trim();
+export async function updateStore(
+  store: Store,
+  input: { name: string; default_tax_mode: TaxMode },
+  ctx: MutateContext = defaultCtx,
+) {
+  const name = input.name.trim();
   if (!name) throw new Error('名前を入れてください');
-  if (name !== store.name) await patchRow('stores', store.id, { name }, ctx);
+  const patch: Partial<Store> = {};
+  if (name !== store.name) patch.name = name;
+  if (input.default_tax_mode !== store.default_tax_mode) patch.default_tax_mode = input.default_tax_mode;
+  if (Object.keys(patch).length > 0) await patchRow('stores', store.id, patch, ctx);
 }
 
 export const deleteStore = (store: Store, ctx: MutateContext = defaultCtx) => softDelete('stores', store.id, ctx);

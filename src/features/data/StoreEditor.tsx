@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useRow } from '../../data/hooks.ts';
-import type { Store } from '../../domain/types.ts';
+import type { Store, TaxMode } from '../../domain/types.ts';
 import Sheet from '../../ui/Sheet.tsx';
-import { addStore, deleteStore, renameStore } from './actions.ts';
+import TaxToggle from '../../ui/TaxToggle.tsx';
+import { addStore, deleteStore, updateStore } from './actions.ts';
 
-/** id がなければ新しく足す。店は名前だけ（優先順と扱いは設定で変える） */
+/** id がなければ新しく足す。名前と、値段の書き方（税込・税抜）。優先順と扱いは設定で変える */
 export default function StoreEditor({ id, onClose, onAdded }: {
   id: string | null; onClose: () => void; onAdded?: (id: string) => void;
 }) {
@@ -15,14 +16,15 @@ export default function StoreEditor({ id, onClose, onAdded }: {
 
 function StoreForm({ store, onClose, onAdded }: { store: Store | null; onClose: () => void; onAdded?: (id: string) => void }) {
   const [name, setName] = useState(store?.name ?? '');
+  const [taxMode, setTaxMode] = useState<TaxMode>(store?.default_tax_mode ?? 'included');
   const [error, setError] = useState('');
 
   const save = async () => {
     try {
-      if (store) await renameStore(store, name);
+      if (store) await updateStore(store, { name, default_tax_mode: taxMode });
       else {
         // onAdded?.(await addStore(...)) と書くと、onAdded がないとき addStore ごと飛ばされる
-        const newId = await addStore(name);
+        const newId = await addStore(name, undefined, taxMode);
         onAdded?.(newId);
       }
       onClose();
@@ -45,6 +47,10 @@ function StoreForm({ store, onClose, onAdded }: { store: Store | null; onClose: 
           名前
           <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
         </label>
+        <div className="field">
+          <span>値段の書き方（値段を入れるときの初期値）</span>
+          <TaxToggle value={taxMode} onChange={setTaxMode} label="値段の書き方" />
+        </div>
         {error && <p className="error">{error}</p>}
         {store && <button type="button" className="plain danger" onClick={remove}>この店を消す</button>}
       </form>

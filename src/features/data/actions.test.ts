@@ -3,7 +3,7 @@ import { LocalDb } from '../../data/db.ts';
 import type { MutateContext } from '../../data/sync/mutate.ts';
 import { priceId } from '../../domain/ids.ts';
 import {
-  addProduct, addStore, deleteStore, DuplicateNameError, parseAmount, savePrice, saveSales,
+  addProduct, addStore, deleteStore, DuplicateNameError, parseAmount, savePrice, saveSales, updateStore,
 } from './actions.ts';
 import { buildDataRows } from './filters.ts';
 
@@ -43,10 +43,11 @@ describe('値段', () => {
     expect(prices[0].price_updated_at > first).toBe(true);
   });
 
-  it('税込・税抜を変えると、店の初期値が変わる', async () => {
+  it('値段を税抜で入れても、店の税込・税抜の設定は変わらない', async () => {
     const { store, product } = await setup();
     await savePrice(store, product, 180, 'excluded', ctx);
-    expect((await ctx.db.stores.get(store.id))!.default_tax_mode).toBe('excluded');
+    await saveSales(store, product, [{ weekday: 2, amount: 90, tax_mode: 'excluded' }], ctx);
+    expect((await ctx.db.stores.get(store.id))!.default_tax_mode).toBe('included');
   });
 
   it('通常の値段がないと、曜日セールは足せない', async () => {
@@ -77,6 +78,13 @@ describe('商品と店', () => {
     await addStore('A店', ctx);
     const id = await addStore('B店', ctx);
     expect(await ctx.db.stores.get(id)).toMatchObject({ sort_order: 2, visit_mode: 'usual', default_tax_mode: 'included' });
+  });
+
+  it('税抜の店として作れる。あとから税込・税抜を変えられる', async () => {
+    const id = await addStore('C店', ctx, 'excluded');
+    expect((await ctx.db.stores.get(id))!.default_tax_mode).toBe('excluded');
+    await updateStore((await ctx.db.stores.get(id))!, { name: 'C店', default_tax_mode: 'included' }, ctx);
+    expect((await ctx.db.stores.get(id))!.default_tax_mode).toBe('included');
   });
 
   it('消した店の値段は一覧に出ない', async () => {

@@ -40,7 +40,39 @@ describe('データ一覧', () => {
     expect(within(dialog).getByText('→ 税込 194円')).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: '保存' }));
     expect(await screen.findByText('194円/100g')).toBeInTheDocument();
-    expect((await db.stores.get(storeId))!.default_tax_mode).toBe('excluded');
+    expect((await db.stores.get(storeId))!.default_tax_mode).toBe('included');
+  });
+
+  it('店を税抜にすると、新しく入れる値段の初期値が税抜になる', async () => {
+    const store = (await db.stores.get(storeId))!;
+    const egg = (await db.products.toArray()).find((p) => p.name === '卵')!;
+    await savePrice(store, egg, 198, 'included');
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: /^卵/ }));
+    await user.click(await screen.findByRole('button', { name: '店を編集' }));
+    const sheet = await screen.findByRole('dialog', { name: '店を編集' });
+    const tax = within(sheet).getByRole('group', { name: '値段の書き方' });
+    expect(within(tax).getByRole('button', { name: '税込' })).toHaveAttribute('aria-pressed', 'true');
+    await user.click(within(tax).getByRole('button', { name: '税抜' }));
+    await user.click(within(sheet).getByRole('button', { name: '保存' }));
+    await waitFor(async () => expect((await db.stores.get(storeId))!.default_tax_mode).toBe('excluded'));
+    // 前に入れた卵は税込のまま
+    expect((await db.prices.toArray())[0].tax_mode).toBe('included');
+  });
+
+  it('税抜の店で値段を足すと、最初から税抜が選ばれている', async () => {
+    await db.stores.update(storeId, { default_tax_mode: 'excluded' });
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: '足す' }));
+    await user.click(screen.getByRole('button', { name: '値段' }));
+    const dialog = screen.getByRole('dialog');
+    await pick(user, within(dialog).getByRole('button', { name: '店' }), 'A店');
+    await user.type(within(dialog).getByLabelText('商品'), '牛乳');
+    await user.click(within(within(dialog).getByRole('list', { name: '商品の候補' })).getByRole('button', { name: '牛乳' }));
+    await within(dialog).findByLabelText('通常の値段');
+    expect(within(dialog).getByRole('button', { name: '税抜' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('通常の値段がないと、曜日セールは足せない', async () => {
