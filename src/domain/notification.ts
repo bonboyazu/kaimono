@@ -38,7 +38,7 @@ export function saleHitsForToday(input: {
   const hits: (SaleHit & { order: number; itemOrder: number })[] = [];
   productIds.forEach((productId, itemOrder) => {
     const product = products.get(productId);
-    if (!product) return;
+    if (!product || product.unit === 'none') return;
     for (const s of todaySales) {
       if (s.product_id !== productId) continue;
       const store = stores.get(s.store_id);

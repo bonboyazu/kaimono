@@ -168,4 +168,14 @@ describe('buildPlan', () => {
       { date: '2026-11-18', stores: [{ store_id: 'A', items: ['卵'] }] },
     ]);
   });
+
+  it('19. 値段を入れない商品は、値段が残っていても、groups にも未定にも出ない', () => {
+    const plan = buildPlan(base({
+      products: [...['牛乳', '食パン', '卵', '牛こま'].map(product), { ...product('キャベツ'), unit: 'none' }],
+      prices: [...base().prices, price('A', 'キャベツ', 150)],
+      items: [item('牛乳'), item('キャベツ')],
+    }));
+    expect(() => find(plan, 'キャベツ')).toThrow();
+    expect(find(plan, '牛乳').chosen).not.toBeNull();
+  });
 });

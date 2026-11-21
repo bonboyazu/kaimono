@@ -58,6 +58,8 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
           <legend>値段の単位</legend>
           <label className="radio"><input type="radio" checked={unit === 'piece'} onChange={() => setUnit('piece')} />1つあたり</label>
           <label className="radio"><input type="radio" checked={unit === '100g'} onChange={() => setUnit('100g')} />100gあたり</label>
+          <label className="radio"><input type="radio" checked={unit === 'none'} onChange={() => setUnit('none')} />値段を入れない</label>
+          {unit === 'none' && <p className="note">値段をくらべません。リストには入れられます</p>}
         </fieldset>
         <fieldset>
           <legend>税率</legend>

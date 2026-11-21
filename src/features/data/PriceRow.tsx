@@ -7,6 +7,17 @@ type Props = { row: DataRow; quick: boolean; onOpen: () => void; onNext: () => v
 
 const PriceRow = forwardRef<HTMLInputElement, Props>(function PriceRow({ row, quick, onOpen, onNext }, ref) {
   const { product, store, price, sales } = row;
+  // 値段を入れない商品：店なしの1行。押すと商品の編集
+  if (!store) {
+    return (
+      <li className="price-row">
+        <button type="button" className="price-row-main" onClick={onOpen}>
+          <span className="price-row-name">{product.name}</span>
+        </button>
+        <span className="price-row-amount">—</span>
+      </li>
+    );
+  }
   const sub = [
     ...sales.map((s) => formatSale(s, product)),
     price ? `更新 ${formatDate(price.price_updated_at)}` : null,

@@ -59,7 +59,7 @@ export default function PriceEditor(props: Props) {
           ) : (
             <SearchPicker
               label="商品" value={productId} onChange={setProductId}
-              options={[...products].sort((a, b) => a.name.localeCompare(b.name, 'ja'))}
+              options={products.filter((p) => p.unit !== 'none').sort((a, b) => a.name.localeCompare(b.name, 'ja'))}
             />
           )}
           <div className="picker">

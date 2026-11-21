@@ -23,7 +23,7 @@ const products = [product('p2', 'たまご'), product('p1', 'ぎゅうにゅう'
 const prices = [price('A', 'p1', 198), price('B', 'p1', 188), price('A', 'p2', 248), price('X', 'p3', 100)];
 const sales = [sale('A', 'p2', 2, 98), sale('A', 'p2', 6, 120)];
 const data = { stores, products, prices, sales };
-const key = (r: { product: Product; store: Store }) => `${r.product.name}@${r.store.name}`;
+const key = (r: { product: Product; store: Store | null }) => `${r.product.name}@${r.store?.name ?? ''}`;
 
 describe('buildDataRows', () => {
   it('絞り込みなし：値段がある行だけ。商品名の順 → 店の優先順。消した店は出さない', () => {
@@ -60,6 +60,20 @@ describe('buildDataRows', () => {
     expect(buildDataRows(d, { storeId: null, query: 'ぎゅう' }).map(key)).toEqual(['ぎゅうにゅう@A店', 'ぎゅうにゅう@B店']);
     expect(buildDataRows(d, { storeId: null, query: 'たま' })[1].price).toBeNull();
     expect(buildDataRows(d, { storeId: 'B', query: 'たま' })[0].price).toBeNull();
+  });
+
+  it('値段を入れない商品：すべての店では店なしの1行。値段は出さない。店で絞り込むと出ない', () => {
+    const d = {
+      ...data,
+      products: [...products, product('p4', 'たまねぎ', 'none')],
+      prices: [...prices, price('A', 'p4', 100)],
+    };
+    const all = buildDataRows(d, { storeId: null, query: '' });
+    expect(all.map((r) => `${r.product.name}@${r.store?.name ?? ''}`)).toEqual(['ぎゅうにゅう@A店', 'ぎゅうにゅう@B店', 'たまご@A店', 'たまねぎ@']);
+    expect(all[3].price).toBeNull();
+    expect(buildDataRows(d, { storeId: null, query: 'たま' }).map((r) => `${r.product.name}@${r.store?.name ?? ''}`))
+      .toEqual(['たまご@A店', 'たまご@B店', 'たまねぎ@']);
+    expect(buildDataRows(d, { storeId: 'A', query: '' }).map((r) => r.product.name)).not.toContain('たまねぎ');
   });
 });
 

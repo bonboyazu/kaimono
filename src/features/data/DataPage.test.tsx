@@ -164,4 +164,32 @@ describe('データ一覧', () => {
     window.confirm = ok;
     await waitFor(() => expect(screen.queryByText('198円')).toBeNull());
   });
+
+  it('値段を入れない商品は、すべての店で横線の1行。押すと商品の編集が開き、単位を戻せる', async () => {
+    await addProduct({ name: 'キャベツ', unit: 'none', tax_rate: 8 });
+    const user = userEvent.setup();
+    renderPage();
+    const row = await screen.findByRole('button', { name: 'キャベツ' });
+    expect(row.closest('li')).toHaveTextContent('—');
+    await user.click(row);
+    const sheet = await screen.findByRole('dialog', { name: '商品を編集' });
+    expect(within(sheet).getByRole('radio', { name: '値段を入れない' })).toBeChecked();
+    await user.click(within(sheet).getByRole('radio', { name: '1つあたり' }));
+    await user.click(within(sheet).getByRole('button', { name: '保存' }));
+    await waitFor(async () => expect((await db.products.toArray()).find((p) => p.name === 'キャベツ')!.unit).toBe('piece'));
+  });
+
+  it('値段を入れない商品は、店で絞り込んだ一覧と、値段を足すときの商品の候補に出ない', async () => {
+    await addProduct({ name: 'キャベツ', unit: 'none', tax_rate: 8 });
+    const user = userEvent.setup();
+    renderPage();
+    await pick(user, screen.getByRole('button', { name: '店で絞り込む' }), 'A店');
+    expect(await screen.findByRole('button', { name: /^卵/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /キャベツ/ })).toBeNull();
+    await user.click(screen.getByRole('button', { name: '足す' }));
+    await user.click(screen.getByRole('button', { name: '値段' }));
+    const dialog = screen.getByRole('dialog');
+    await user.type(within(dialog).getByLabelText('商品'), 'キャ');
+    expect(within(dialog).queryByRole('button', { name: 'キャベツ' })).toBeNull();
+  });
 });

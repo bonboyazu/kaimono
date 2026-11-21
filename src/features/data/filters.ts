@@ -5,7 +5,8 @@ import type { Price, Product, SalePrice, Store, TaxMode } from '../../domain/typ
 
 export type DataSource = { stores: Store[]; products: Product[]; prices: Price[]; sales: SalePrice[] };
 export type DataFilter = { storeId: string | null; query: string };
-export type DataRow = { product: Product; store: Store; price: Price | null; sales: SalePrice[] };
+/** store が null の行は、値段を入れない商品（店ごとに並べず1行だけ） */
+export type DataRow = { product: Product; store: Store | null; price: Price | null; sales: SalePrice[] };
 
 export const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -29,13 +30,19 @@ export function buildDataRows(src: DataSource, filter: DataFilter): DataRow[] {
     const store = stores.get(filter.storeId);
     if (!store) return [];
     for (const product of products) {
+      if (product.unit === 'none') continue;
       rows.push({ product, store, price: priceOf.get(`${store.id}:${product.id}`) ?? null, sales: salesOf(store.id, product.id) });
     }
     return rows;
   }
   // すべての店：文字を入れたら、当てはまる商品を店ごとに全部並べる（値段のない店も出す）。空なら値段のある行だけ
+  // 値段を入れない商品は、いつも店なしの1行
   const storeList = [...stores.values()].sort((a, b) => a.sort_order - b.sort_order);
   for (const product of products) {
+    if (product.unit === 'none') {
+      rows.push({ product, store: null, price: null, sales: [] });
+      continue;
+    }
     for (const store of storeList) {
       const price = priceOf.get(`${store.id}:${product.id}`) ?? null;
       if (price || q) rows.push({ product, store, price, sales: salesOf(store.id, product.id) });

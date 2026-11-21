@@ -49,6 +49,10 @@ describe('saleHitsForToday', () => {
     expect(saleHitsForToday(base({ items: [item('牛乳')] }))).toEqual([]);
   });
 
+  it('値段を入れない商品は、セールが残っていても知らせない', () => {
+    expect(saleHitsForToday(base({ products: [product('卵', 'none')] }))).toEqual([]);
+  });
+
   it('卵がチェック済み → 空', () => {
     expect(saleHitsForToday(base({ items: [item('卵', { checked_at: '2026-11-17T00:00:00Z' })] }))).toEqual([]);
   });

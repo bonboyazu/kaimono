@@ -2,7 +2,8 @@
 
 export type TaxMode = 'included' | 'excluded';
 export type VisitMode = 'usual' | 'other' | 'never';
-export type Unit = 'piece' | '100g';
+/** none：値段を入れない商品（野菜など）。値段を比べず、提案・安い順・データの店ごとの行に出さない */
+export type Unit = 'piece' | '100g' | 'none';
 
 export type SyncMeta = {
   field_times: Record<string, string>;

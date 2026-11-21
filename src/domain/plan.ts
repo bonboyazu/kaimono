@@ -105,7 +105,7 @@ export function buildPlan(input: PlanInput): Plan {
   const sortedItems = [...input.items].sort((a, b) => a.added_at.localeCompare(b.added_at) || a.id.localeCompare(b.id));
   for (const item of sortedItems) {
     const product = products.get(item.product_id);
-    if (!product) continue;
+    if (!product || product.unit === 'none') continue;
     const forced = item.forced_store_id && storeById.has(item.forced_store_id)
       ? candidatesAt(product, [item.forced_store_id])
       : [];

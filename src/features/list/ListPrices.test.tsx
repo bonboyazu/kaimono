@@ -90,4 +90,24 @@ describe('リストの値段', () => {
     await u.click(within(dialog).getByRole('option', { name: 'C店' }));
     expect(await within(dialog).findByLabelText('通常の値段')).toBeInTheDocument();
   });
+
+  it('値段を入れない商品は、行を押しても安い順が開かず、チェックしても買った店は空', async () => {
+    await createRow('products', { id: 'cab', name: 'キャベツ', unit: 'none', tax_rate: 8, is_preset: false });
+    await createRow('prices', { id: 'pc', store_id: 'A', product_id: 'cab', amount: 150, tax_mode: 'included', price_updated_at: '2026-11-01T00:00:00Z' });
+    await addToList('cab', user.id);
+    const u = userEvent.setup();
+    render(
+      <AuthContext.Provider value={{ user, auth: {} as AuthApi }}>
+        <MemoryRouter initialEntries={['/list']}><ListPage /></MemoryRouter>
+      </AuthContext.Provider>,
+    );
+    await screen.findByRole('button', { name: 'キャベツをチェック' });
+    expect(screen.queryByRole('button', { name: 'キャベツ' })).toBeNull();
+    await u.click(screen.getByRole('button', { name: 'キャベツをチェック' }));
+    await waitFor(async () => {
+      const cab = (await db.list_items.toArray()).find((i) => i.product_id === 'cab')!;
+      expect(cab.checked_at).not.toBeNull();
+      expect(cab.bought_store_id).toBeNull();
+    });
+  });
 });

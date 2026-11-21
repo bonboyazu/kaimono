@@ -62,11 +62,14 @@ export default function DataPage() {
         <ul className="price-list">
           {rows.map((row, i) => (
             <PriceRow
-              key={`${row.store.id}:${row.product.id}`}
+              key={`${row.store?.id ?? ''}:${row.product.id}`}
               ref={(el) => { inputs.current[i] = el; }}
               row={row}
               quick={quick}
-              onOpen={() => setOpen({ kind: 'price', storeId: row.store.id, productId: row.product.id })}
+              onOpen={() =>
+                setOpen(row.store
+                  ? { kind: 'price', storeId: row.store.id, productId: row.product.id }
+                  : { kind: 'product', id: row.product.id })}
               onNext={() => inputs.current[i + 1]?.focus()}
             />
           ))}

@@ -58,7 +58,7 @@ export default function ListPage() {
     if (!stores || !prices || !sales) return out;
     for (const i of toBuy) {
       const p = productOf.get(i.product_id);
-      if (p) out.set(p.id, rankStores(p, stores, prices, sales));
+      if (p && p.unit !== 'none') out.set(p.id, rankStores(p, stores, prices, sales));
     }
     return out;
   }, [toBuy, productOf, stores, prices, sales]);
@@ -77,12 +77,17 @@ export default function ListPage() {
         </button>
         {items && toBuy.length === 0 && <p className="note empty">リストは空です。上の「買うものを追加」から入れてください</p>}
         <ul className="item-list" aria-label="買うもの">
-          {toBuy.map((i) => (
-            <ItemRow
-              key={i.id} item={i} product={productOf.get(i.product_id)} storeId={chosenStoreOf(plan, i.id)}
-              prices={{ ranks: ranksOf.get(i.product_id) ?? [], storeName, onOpenPrice: openPrice }}
-            />
-          ))}
+          {toBuy.map((i) => {
+            const product = productOf.get(i.product_id);
+            // 値段を入れない商品は、押しても安い順を開かない
+            const comparable = product?.unit !== 'none';
+            return (
+              <ItemRow
+                key={i.id} item={i} product={product} storeId={chosenStoreOf(plan, i.id)}
+                prices={comparable ? { ranks: ranksOf.get(i.product_id) ?? [], storeName, onOpenPrice: openPrice } : undefined}
+              />
+            );
+          })}
         </ul>
         {boughtToday.length > 0 && (
           <>
