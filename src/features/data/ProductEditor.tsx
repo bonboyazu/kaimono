@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { similarNames } from '../../domain/similar.ts';
 import { useRow, useRows } from '../../data/hooks.ts';
 import type { Product, Unit } from '../../domain/types.ts';
 import Sheet from '../../ui/Sheet.tsx';
 import { addProduct, deleteProduct, updateProduct } from './actions.ts';
+import MeatField from './MeatField.tsx';
 
 /** id がなければ新しく足す */
 export default function ProductEditor({ id, onClose }: { id: string | null; onClose: () => void }) {
@@ -17,6 +18,7 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
   const [unit, setUnit] = useState<Unit>(product?.unit ?? 'piece');
   const [taxRate, setTaxRate] = useState(product?.tax_rate ?? 8);
   const [error, setError] = useState('');
+  const nameId = useId();
   const all = useRows('products');
   const similar = similarNames(name, (all ?? []).filter((p) => p.id !== product?.id).map((p) => p.name));
 
@@ -41,10 +43,13 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
   return (
     <Sheet title={product ? '商品を編集' : '商品を足す'} onClose={onClose} formId="product-form">
       <form id="product-form" className="form-grid" onSubmit={(e) => { e.preventDefault(); void save(); }}>
-        <label>
-          名前
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
+        <div className="name-field">
+          <label htmlFor={nameId}>名前</label>
+          {/* 肉で組み立てた名前は 100gあたりにする */}
+          <MeatField onPick={(n) => { setName(n); setUnit('100g'); }}>
+            <input id={nameId} type="text" value={name} onChange={(e) => setName(e.target.value)} />
+          </MeatField>
+        </div>
         {similar.length > 0 && (
           <div className="similar" role="note" aria-label="似た商品">
             <p>似た商品がもうあります。同じものなら、足さずにそちらを使ってください</p>

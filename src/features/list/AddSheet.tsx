@@ -5,6 +5,7 @@ import { useRows } from '../../data/hooks.ts';
 import { frequentProducts, searchProducts } from '../../domain/list.ts';
 import { normalizeName } from '../../domain/similar.ts';
 import Sheet from '../../ui/Sheet.tsx';
+import MeatField from '../data/MeatField.tsx';
 import { addNewProductToList, addToList, removeFromList } from './actions.ts';
 
 export default function AddSheet({ onClose }: { onClose: () => void }) {
@@ -44,10 +45,12 @@ export default function AddSheet({ onClose }: { onClose: () => void }) {
   return (
     <Sheet title="買うものを追加" onClose={onClose}>
       <div className="form-grid">
-        <input
-          type="search" aria-label="商品を探す" placeholder="商品名で探す" value={query}
-          onChange={(e) => { setQuery(e.target.value); setAdded(null); }}
-        />
+        <MeatField onPick={(name) => { setQuery(name); setAdded(null); }}>
+          <input
+            type="search" aria-label="商品を探す" placeholder="商品名で探す" value={query}
+            onChange={(e) => { setQuery(e.target.value); setAdded(null); }}
+          />
+        </MeatField>
         {added && <p className="added-note" role="status">「{added}」をリストに入れました</p>}
         <p className="note">{q ? '押すとリストに入ります。もう一度押すと外れます' : 'よく買うもの（押すとリストに入ります）'}</p>
         <ul className="add-list" aria-label="候補">

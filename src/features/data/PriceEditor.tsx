@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { useRows } from '../../data/hooks.ts';
 import type { Price, Product, SalePrice, Store, TaxMode } from '../../domain/types.ts';
 import Sheet from '../../ui/Sheet.tsx';
-import SearchPicker from '../../ui/SearchPicker.tsx';
 import Select from '../../ui/Select.tsx';
 import TaxToggle from '../../ui/TaxToggle.tsx';
 import { deletePrice, parseAmount, savePrice, saveSales } from './actions.ts';
 import { formatDate, WEEKDAYS, yen } from './filters.ts';
+import ProductPicker from './ProductPicker.tsx';
 
 type Props = {
   storeId: string | null;
@@ -57,9 +57,9 @@ export default function PriceEditor(props: Props) {
               <span className="picker-fixed">{product?.name ?? ''}</span>
             </div>
           ) : (
-            <SearchPicker
-              label="商品" value={productId} onChange={setProductId}
-              options={products.filter((p) => p.unit !== 'none').sort((a, b) => a.name.localeCompare(b.name, 'ja'))}
+            <ProductPicker
+              value={productId} onChange={setProductId}
+              products={products.filter((p) => !p.deleted_at)}
             />
           )}
           <div className="picker">

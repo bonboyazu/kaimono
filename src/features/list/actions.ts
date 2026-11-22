@@ -3,6 +3,7 @@ import { db as defaultDb } from '../../data/db.ts';
 import { createRow, patchRow, softDelete, type MutateContext } from '../../data/sync/mutate.ts';
 import { addDays } from '../../domain/dates.ts';
 import { excludedDateId, newId, storeOverrideId } from '../../domain/ids.ts';
+import { isMeatName } from '../../domain/meat.ts';
 import { normalizeName } from '../../domain/similar.ts';
 import type { ListItem, Store } from '../../domain/types.ts';
 import { addProduct } from '../data/actions.ts';
@@ -29,7 +30,8 @@ export async function removeFromList(productId: string, ctx: MutateContext = def
 export async function addNewProductToList(name: string, userId: string | null, ctx: MutateContext = defaultCtx): Promise<void> {
   const products = await ctx.db.products.toArray();
   const same = products.find((p) => !p.deleted_at && normalizeName(p.name) === normalizeName(name));
-  const id = same?.id ?? (await addProduct({ name, unit: 'piece', tax_rate: 8 }, ctx));
+  // 肉の組み立てでできる名前は 100gあたり
+  const id = same?.id ?? (await addProduct({ name, unit: isMeatName(name) ? '100g' : 'piece', tax_rate: 8 }, ctx));
   await addToList(id, userId, ctx);
 }
 

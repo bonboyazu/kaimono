@@ -122,6 +122,18 @@ describe('買うものを追加', () => {
     expect((await db.list_items.toArray())[0]).toMatchObject({ product_id: p.id, added_by: user.id });
   });
 
+  it('「肉」で名前を組み立てて足すと、100gあたりの商品としてリストに入る', async () => {
+    const u = userEvent.setup();
+    renderPage();
+    await u.click(await screen.findByRole('button', { name: /買うものを追加/ }));
+    await u.click(screen.getByRole('button', { name: '肉' }));
+    await u.click(screen.getByRole('button', { name: '合いびき' }));
+    expect(screen.getByLabelText('商品を探す')).toHaveValue('合いびき肉');
+    await u.click(await screen.findByRole('button', { name: '“合いびき肉”を追加' }));
+    await waitFor(async () => expect(await db.list_items.count()).toBe(1));
+    expect((await db.products.toArray()).find((x) => x.name === '合いびき肉')).toMatchObject({ unit: '100g' });
+  });
+
   it('買った記録があれば、よく買う順に出る', async () => {
     await addProduct({ name: 'あめ', unit: 'piece', tax_rate: 8 });
     const base = { memo: '', added_by: user.id, checked_by: user.id, bought_store_id: null, forced_store_id: null, added_at: '2026-11-01T00:00:00Z' };
