@@ -46,7 +46,7 @@ describe('データ一覧', () => {
   it('店を税抜にすると、新しく入れる値段の初期値が税抜になる', async () => {
     const store = (await db.stores.get(storeId))!;
     const egg = (await db.products.toArray()).find((p) => p.name === '卵')!;
-    await savePrice(store, egg, 198, 'included');
+    await savePrice(store, egg, { amount: 198, tax_mode: 'included' });
     const user = userEvent.setup();
     renderPage();
     await user.click(await screen.findByRole('button', { name: /^卵/ }));
@@ -152,7 +152,7 @@ describe('データ一覧', () => {
   it('消した店の値段は一覧に出ない', async () => {
     const store = (await db.stores.get(storeId))!;
     const egg = (await db.products.toArray()).find((p) => p.name === '卵')!;
-    await savePrice(store, egg, 198, 'included');
+    await savePrice(store, egg, { amount: 198, tax_mode: 'included' });
     const user = userEvent.setup();
     renderPage();
     expect(await screen.findByText('198円')).toBeInTheDocument();
@@ -327,5 +327,69 @@ describe('データ一覧', () => {
     await user.click(screen.getByRole('button', { name: '欄を空にする' }));
     expect(field).toHaveValue('');
     expect(field).toHaveFocus();
+  });
+
+  it('商品の編集で「量あたり」を選ぶと g・ml・個を選べる', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: '足す' }));
+    await user.click(screen.getByRole('button', { name: '商品' }));
+    const sheet = await screen.findByRole('dialog', { name: '商品を足す' });
+    await user.type(within(sheet).getByLabelText('名前'), 'しょうゆ');
+    expect(within(sheet).queryByRole('group', { name: '量の単位' })).toBeNull();
+    await user.click(within(sheet).getByRole('radio', { name: '量あたり' }));
+    const units = within(sheet).getByRole('group', { name: '量の単位' });
+    expect(within(units).getByRole('button', { name: 'g' })).toHaveAttribute('aria-pressed', 'true');
+    await user.click(within(units).getByRole('button', { name: 'ml' }));
+    expect(within(sheet).getByText(/100mlあたりで比べます/)).toBeInTheDocument();
+    await user.click(within(sheet).getByRole('button', { name: '保存' }));
+    await waitFor(async () => expect((await db.products.toArray()).find((p) => p.name === 'しょうゆ')?.unit).toBe('size_ml'));
+  });
+
+  it('店で絞り込むと、量あたりの商品は量と値段の欄。量で確定すると値段に移り、値段で保存する', async () => {
+    await addProduct({ name: 'きなこ', unit: 'size_g', tax_rate: 8 });
+    const user = userEvent.setup();
+    renderPage();
+    await pick(user, screen.getByRole('button', { name: '店で絞り込む' }), 'A店');
+    const size = await screen.findByLabelText('きなこの量');
+    await user.click(size);
+    await user.keyboard('180{Enter}');
+    expect(screen.getByLabelText('きなこの値段')).toHaveFocus();
+    expect(await db.prices.count()).toBe(0);
+    await user.keyboard('150{Enter}');
+    await waitFor(async () => expect((await db.prices.toArray())[0]).toMatchObject({ amount: 150, size: 180 }));
+    expect(await screen.findByText(/83.3円\/100g/)).toBeInTheDocument();
+  });
+
+  it('量あたりの商品は、量がないと保存しない', async () => {
+    await addProduct({ name: 'きなこ', unit: 'size_g', tax_rate: 8 });
+    const user = userEvent.setup();
+    renderPage();
+    await pick(user, screen.getByRole('button', { name: '店で絞り込む' }), 'A店');
+    await user.click(await screen.findByLabelText('きなこの値段'));
+    await user.keyboard('150{Enter}');
+    expect(screen.getByLabelText('きなこの量')).toHaveAttribute('aria-invalid', 'true');
+    expect(await db.prices.count()).toBe(0);
+  });
+
+  it('値段の編集：量と値段を入れながら 100gあたりが出て、今の値段より安いかがわかる', async () => {
+    const id = await addProduct({ name: 'きなこ', unit: 'size_g', tax_rate: 8 });
+    await savePrice((await db.stores.get(storeId))!, (await db.products.get(id))!, { amount: 100, tax_mode: 'included', size: 100 });
+    const user = userEvent.setup();
+    renderPage();
+    const row = await screen.findByRole('button', { name: /^きなこ/ });
+    expect(row.closest('li')).toHaveTextContent('100g 100円');
+    expect(row).toHaveTextContent('100円/100g');
+    await user.click(row);
+    const sheet = await screen.findByRole('dialog');
+    await user.clear(await within(sheet).findByLabelText('量'));
+    await user.type(within(sheet).getByLabelText('量'), '180');
+    await user.clear(within(sheet).getByLabelText('通常の値段'));
+    await user.type(within(sheet).getByLabelText('通常の値段'), '150');
+    const box = within(sheet).getByRole('status', { name: '量あたりの値段' });
+    expect(box).toHaveTextContent('83.3円/100g');
+    expect(box).toHaveTextContent('いまの 100g 100円より、100gあたり 16.7円安い');
+    await user.click(within(sheet).getByRole('button', { name: '保存' }));
+    await waitFor(async () => expect((await db.prices.toArray())[0]).toMatchObject({ amount: 150, size: 180 }));
   });
 });

@@ -33,9 +33,9 @@ describe('値段', () => {
 
   it('保存すると更新日が入る。2回目は同じ行を直す', async () => {
     const { store, product } = await setup();
-    await savePrice(store, product, 198, 'included', ctx);
+    await savePrice(store, product, { amount: 198, tax_mode: 'included' }, ctx);
     const first = (await ctx.db.prices.toArray())[0].price_updated_at;
-    await savePrice(store, product, 188, 'included', ctx);
+    await savePrice(store, product, { amount: 188, tax_mode: 'included' }, ctx);
     const prices = await ctx.db.prices.toArray();
     expect(prices).toHaveLength(1);
     expect(prices[0].amount).toBe(188);
@@ -43,9 +43,21 @@ describe('値段', () => {
     expect(prices[0].price_updated_at > first).toBe(true);
   });
 
+  it('量あたりの商品は量も持つ。ほかの商品の値段には量を入れない', async () => {
+    const { store, product } = await setup();
+    const kinakoId = await addProduct({ name: 'きなこ', unit: 'size_g', tax_rate: 8 }, ctx);
+    const kinako = (await ctx.db.products.get(kinakoId))!;
+    await savePrice(store, kinako, { amount: 150, tax_mode: 'included', size: 180 }, ctx);
+    await savePrice(store, product, { amount: 198, tax_mode: 'included', size: 10 }, ctx);
+    expect((await ctx.db.prices.get(await priceId(store.id, kinakoId)))!.size).toBe(180);
+    expect('size' in (await ctx.db.prices.get(await priceId(store.id, product.id)))!).toBe(false);
+    await savePrice(store, kinako, { amount: 100, tax_mode: 'included', size: 100 }, ctx);
+    expect((await ctx.db.prices.get(await priceId(store.id, kinakoId)))!).toMatchObject({ amount: 100, size: 100 });
+  });
+
   it('値段を税抜で入れても、店の税込・税抜の設定は変わらない', async () => {
     const { store, product } = await setup();
-    await savePrice(store, product, 180, 'excluded', ctx);
+    await savePrice(store, product, { amount: 180, tax_mode: 'excluded' }, ctx);
     await saveSales(store, product, [{ weekday: 2, amount: 90, tax_mode: 'excluded' }], ctx);
     expect((await ctx.db.stores.get(store.id))!.default_tax_mode).toBe('included');
   });
@@ -53,14 +65,14 @@ describe('値段', () => {
   it('通常の値段がないと、曜日セールは足せない', async () => {
     const { store, product } = await setup();
     await expect(saveSales(store, product, [{ weekday: 2, amount: 98, tax_mode: 'included' }], ctx)).rejects.toThrow();
-    await savePrice(store, product, 198, 'included', ctx);
+    await savePrice(store, product, { amount: 198, tax_mode: 'included' }, ctx);
     await saveSales(store, product, [{ weekday: 2, amount: 98, tax_mode: 'included' }], ctx);
     expect((await ctx.db.sale_prices.toArray()).map((s) => s.weekday)).toEqual([2]);
   });
 
   it('曜日セールを、渡した内容にそろえる（足す・直す・消す）', async () => {
     const { store, product } = await setup();
-    await savePrice(store, product, 198, 'included', ctx);
+    await savePrice(store, product, { amount: 198, tax_mode: 'included' }, ctx);
     await saveSales(store, product, [{ weekday: 2, amount: 98, tax_mode: 'included' }, { weekday: 6, amount: 120, tax_mode: 'included' }], ctx);
     await saveSales(store, product, [{ weekday: 6, amount: 110, tax_mode: 'included' }], ctx);
     const alive = (await ctx.db.sale_prices.toArray()).filter((s) => !s.deleted_at);
@@ -89,7 +101,7 @@ describe('商品と店', () => {
 
   it('消した店の値段は一覧に出ない', async () => {
     const { store, product } = await setup();
-    await savePrice(store, product, 198, 'included', ctx);
+    await savePrice(store, product, { amount: 198, tax_mode: 'included' }, ctx);
     await deleteStore(store, ctx);
     const src = {
       stores: await ctx.db.stores.toArray(), products: await ctx.db.products.toArray(),

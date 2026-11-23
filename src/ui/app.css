@@ -489,3 +489,15 @@ button.danger { color: var(--color-warn); }
 .add-list .add-new .note { font-weight: 400; }
 /* キーボードを出したまま次の欄に移るための仮の欄（見えない） */
 .focus-holder { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: none; padding: 0; font-size: 16px; pointer-events: none; }
+/* 量あたり：商品の編集の g・ml・個、値段の編集の量の欄と 100gあたり、データ一覧の量と値段の欄 */
+.unit-sub { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); width: 100%; padding-left: 28px; }
+.size-line { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text); }
+.size-line input { width: 110px; text-align: right; }
+.per-box { display: flex; flex-direction: column; gap: 2px; padding: var(--space-3); border-radius: var(--radius); background: #eef6f1; }
+.per-box b { font-size: 18px; color: var(--color-primary); }
+.cheaper { color: var(--color-primary); font-weight: 600; }
+.pricier { color: var(--color-warn); font-weight: 600; }
+.quick-price.size { max-width: 68%; }
+.quick-price input.size-in { width: 60px; }
+.quick-price input.price-in { width: 72px; }
+.ranking-size { font-size: 12px; font-weight: 400; color: var(--color-muted); }

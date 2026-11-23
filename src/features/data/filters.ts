@@ -1,5 +1,6 @@
 // データ一覧の行を作る（純粋な関数）
 import { jstDate } from '../../domain/dates.ts';
+import { comparable, decimal1, isSizeUnit, sizeText, sizeUnitOf } from '../../domain/size.ts';
 import { toTaxIncluded } from '../../domain/tax.ts';
 import type { Price, Product, SalePrice, Store, TaxMode } from '../../domain/types.ts';
 
@@ -55,8 +56,21 @@ type Amount = { amount: number; tax_mode: TaxMode };
 
 export const yen = (a: Amount, product: Product) => toTaxIncluded(a.amount, a.tax_mode, product.tax_rate);
 
-export function formatPrice(a: Amount, product: Product): string {
+/** 量あたりの商品は '180g 150円' */
+export function formatPrice(a: Amount & { size?: number | null }, product: Product): string {
+  if (isSizeUnit(product.unit)) {
+    const s = sizeText(a.size, product.unit);
+    return `${s ? `${s} ` : ''}${yen(a, product)}円`;
+  }
   return `${yen(a, product)}円${product.unit === '100g' ? '/100g' : ''}`;
+}
+
+/** 量あたりの商品の比べる値段：'83.3円/100g'。量がなければそう書く。ほかの商品は null */
+export function formatPer(a: Amount & { size?: number | null }, product: Product): string | null {
+  const u = sizeUnitOf(product.unit);
+  if (!u) return null;
+  const v = comparable(yen(a, product), a.size, product.unit);
+  return v === null ? '量を入れてください' : `${decimal1(v)}円/${u.per}`;
 }
 
 export function formatSale(s: Amount & { weekday: number }, product: Product): string {

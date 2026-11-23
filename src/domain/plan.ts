@@ -1,5 +1,6 @@
 // 提案の計算：どの日にどの店で買うと安いか
 import { addDays, weekdayOf } from './dates.ts';
+import { comparable } from './size.ts';
 import { toTaxIncluded } from './tax.ts';
 import type { ListItem, Price, Product, SalePrice, Store, StoreOverride } from './types.ts';
 
@@ -72,10 +73,12 @@ export function buildPlan(input: PlanInput): Plan {
     for (const storeId of storeIds) {
       const p = prices.find((x) => x.store_id === storeId && x.product_id === product.id);
       if (!p) continue;
-      const normal = toTaxIncluded(p.amount, p.tax_mode, product.tax_rate);
+      // 量あたりの商品は 100g などあたりで比べる。量のない値段は使わない
+      const normal = comparable(toTaxIncluded(p.amount, p.tax_mode, product.tax_rate), p.size, product.unit);
+      if (normal === null) continue;
       for (const date of dates) {
         const s = sales.find((x) => x.store_id === storeId && x.product_id === product.id && x.weekday === weekdayOf(date));
-        const salePrice = s ? toTaxIncluded(s.amount, s.tax_mode, product.tax_rate) : null;
+        const salePrice = s ? comparable(toTaxIncluded(s.amount, s.tax_mode, product.tax_rate), p.size, product.unit) : null;
         const onSale = salePrice !== null && salePrice < normal;
         out.push({ date, store_id: storeId, price: onSale ? salePrice : normal, is_sale: onSale });
       }

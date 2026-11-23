@@ -3,6 +3,7 @@ import { db as defaultDb } from '../../data/db.ts';
 import { createRow, patchRow, softDelete, type MutateContext } from '../../data/sync/mutate.ts';
 import { newId, priceId, salePriceId } from '../../domain/ids.ts';
 import { isMeatName } from '../../domain/meat.ts';
+import { isSizeUnit } from '../../domain/size.ts';
 import type { Price, Product, SalePrice, Store, TaxMode, Unit } from '../../domain/types.ts';
 
 const defaultCtx: MutateContext = { db: defaultDb, now: () => new Date().toISOString() };
@@ -15,16 +16,24 @@ export function parseAmount(text: string): number | null {
   return n >= 1 && Number.isSafeInteger(n) ? n : null;
 }
 
+/** size：量あたりの商品の量。ほかの商品では使わない */
+export type PriceInput = { amount: number; tax_mode: TaxMode; size?: number | null };
+
 export async function savePrice(
   store: Store,
   product: Product,
-  amount: number,
-  taxMode: TaxMode,
+  input: PriceInput,
   ctx: MutateContext = defaultCtx,
 ): Promise<void> {
   const id = await priceId(store.id, product.id);
   const existing = await ctx.db.prices.get(id);
-  const fields = { amount, tax_mode: taxMode, price_updated_at: ctx.now() };
+  const fields = {
+    amount: input.amount,
+    tax_mode: input.tax_mode,
+    price_updated_at: ctx.now(),
+    // 量あたりの商品だけ量を送る（ほかの商品の値段は、量の列を使わない）
+    ...(isSizeUnit(product.unit) ? { size: input.size ?? null } : {}),
+  };
   if (existing && !existing.deleted_at) await patchRow('prices', id, fields, ctx);
   else await createRow('prices', { id, store_id: store.id, product_id: product.id, ...fields }, ctx);
 }

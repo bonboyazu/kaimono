@@ -2,8 +2,11 @@
 
 export type TaxMode = 'included' | 'excluded';
 export type VisitMode = 'usual' | 'other' | 'never';
-/** none：値段を入れない商品（野菜など）。値段を比べず、提案・安い順・データの店ごとの行に出さない */
-export type Unit = 'piece' | '100g' | 'none';
+/**
+ * none：値段を入れない商品（野菜など）。値段を比べず、提案・安い順・データの店ごとの行に出さない
+ * size_g・size_ml・size_count：量あたり（きなこなど）。値段を量と一緒に入れ、100g・100ml・1個あたりで比べる
+ */
+export type Unit = 'piece' | '100g' | 'none' | 'size_g' | 'size_ml' | 'size_count';
 
 export type SyncMeta = {
   field_times: Record<string, string>;
@@ -55,6 +58,8 @@ export type Price = SyncMeta & {
   amount: number;
   tax_mode: TaxMode;
   price_updated_at: string;
+  /** 量あたりの商品の量（g・ml・個）。ほかの商品と、量を入れる前の値段は空 */
+  size?: number | null;
 };
 
 export type SalePrice = SyncMeta & {

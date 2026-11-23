@@ -1,11 +1,14 @@
 import { useId, useState } from 'react';
 import { isMeatName } from '../../domain/meat.ts';
+import { sizeUnitOf } from '../../domain/size.ts';
 import { similarNames } from '../../domain/similar.ts';
 import { useRow, useRows } from '../../data/hooks.ts';
 import type { Product, Unit } from '../../domain/types.ts';
 import Sheet from '../../ui/Sheet.tsx';
 import { addProduct, deleteProduct, updateProduct } from './actions.ts';
 import MeatField from './MeatField.tsx';
+
+const SIZE_CHOICES: [Unit, string][] = [['size_g', 'g'], ['size_ml', 'ml'], ['size_count', '個']];
 
 /** id がなければ新しく足す */
 export default function ProductEditor({ id, onClose }: { id: string | null; onClose: () => void }) {
@@ -17,6 +20,7 @@ export default function ProductEditor({ id, onClose }: { id: string | null; onCl
 function ProductForm({ product, onClose }: { product: Product | null; onClose: () => void }) {
   const [name, setName] = useState(product?.name ?? '');
   const [unit, setUnit] = useState<Unit>(product?.unit ?? 'piece');
+  const sizeUnit = sizeUnitOf(unit);
   const [taxRate, setTaxRate] = useState(product?.tax_rate ?? 8);
   const [error, setError] = useState('');
   const nameId = useId();
@@ -64,7 +68,18 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
           <legend>値段の単位</legend>
           <label className="radio"><input type="radio" checked={unit === 'piece'} onChange={() => setUnit('piece')} />1つあたり</label>
           <label className="radio"><input type="radio" checked={unit === '100g'} onChange={() => setUnit('100g')} />100gあたり</label>
+          <label className="radio"><input type="radio" checked={sizeUnit !== null} onChange={() => setUnit('size_g')} />量あたり</label>
           <label className="radio"><input type="radio" checked={unit === 'none'} onChange={() => setUnit('none')} />値段を入れない</label>
+          {sizeUnit && (
+            <div className="unit-sub">
+              <span className="segmented" role="group" aria-label="量の単位">
+                {SIZE_CHOICES.map(([u, label]) => (
+                  <button key={u} type="button" aria-pressed={unit === u} onClick={() => setUnit(u)}>{label}</button>
+                ))}
+              </span>
+              <p className="note">量と値段を入れると、{sizeUnit.base === 1 ? `1${sizeUnit.label}` : sizeUnit.per}あたりで比べます（きなこ 100g 100円 など）</p>
+            </div>
+          )}
           {unit === 'none' && <p className="note">値段をくらべません。リストには入れられます</p>}
         </fieldset>
         <fieldset>

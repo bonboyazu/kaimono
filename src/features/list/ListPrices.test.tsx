@@ -110,4 +110,24 @@ describe('リストの値段', () => {
       expect(cab.bought_store_id).toBeNull();
     });
   });
+
+  it('量あたりの商品は 100gあたりの安い順に並び、量と値段も出る。チェックすると安いほうの店が入る', async () => {
+    await createRow('products', { id: 'kinako', name: 'きなこ', unit: 'size_g', tax_rate: 8, is_preset: false });
+    await createRow('prices', { id: 'ka', store_id: 'A', product_id: 'kinako', amount: 100, tax_mode: 'included', price_updated_at: '2026-11-01T00:00:00Z', size: 100 });
+    await createRow('prices', { id: 'kb', store_id: 'B', product_id: 'kinako', amount: 150, tax_mode: 'included', price_updated_at: '2026-11-01T00:00:00Z', size: 180 });
+    await db.stores.update('B', { visit_mode: 'usual' });
+    await addToList('kinako', user.id);
+    const u = userEvent.setup();
+    render(
+      <AuthContext.Provider value={{ user, auth: {} as AuthApi }}>
+        <MemoryRouter initialEntries={['/list']}><ListPage /></MemoryRouter>
+      </AuthContext.Provider>,
+    );
+    await u.click(await screen.findByRole('button', { name: 'きなこ' }));
+    const list = screen.getByRole('list', { name: 'きなこの安い店' });
+    const rows = within(list).getAllByRole('listitem').map((li) => li.textContent);
+    expect(rows).toEqual(['1B店83.3円/100g180g 150円', '2A店100円/100g100g 100円']);
+    await u.click(screen.getByRole('button', { name: 'きなこをチェック' }));
+    await waitFor(async () => expect((await db.list_items.toArray()).find((i) => i.product_id === 'kinako')?.bought_store_id).toBe('B'));
+  });
 });

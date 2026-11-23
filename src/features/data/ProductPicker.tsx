@@ -1,6 +1,7 @@
 // 値段を足すときの商品の欄。打つと候補が縦に並び、なければその場で足す。欄の中の肉のアイコンで名前を組み立てられる
 import { useId, useState } from 'react';
 import { isMeatName } from '../../domain/meat.ts';
+import { unitLabel } from '../../domain/size.ts';
 import { normalizeName } from '../../domain/similar.ts';
 import type { Product } from '../../domain/types.ts';
 import { addProductByName } from './actions.ts';
@@ -55,7 +56,7 @@ export default function ProductPicker({ products, value, onChange }: {
             <li key={o.id}>
               <button type="button" aria-label={o.name} onClick={() => onChange(o.id)}>
                 <span>{o.name}</span>
-                <span className="note">{o.unit === '100g' ? '100gあたり' : '1つあたり'}</span>
+                <span className="note">{unitLabel(o.unit)}</span>
               </button>
             </li>
           ))}

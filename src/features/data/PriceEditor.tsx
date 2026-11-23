@@ -1,12 +1,13 @@
 // 値段の編集：通常の値段・税込／税抜・曜日セール・更新日
 import { useState } from 'react';
 import { useRows } from '../../data/hooks.ts';
+import { comparable, decimal1, sizeText, sizeUnitOf } from '../../domain/size.ts';
 import type { Price, Product, SalePrice, Store, TaxMode } from '../../domain/types.ts';
 import Sheet from '../../ui/Sheet.tsx';
 import Select from '../../ui/Select.tsx';
 import TaxToggle from '../../ui/TaxToggle.tsx';
 import { deletePrice, parseAmount, savePrice, saveSales } from './actions.ts';
-import { formatDate, WEEKDAYS, yen } from './filters.ts';
+import { formatDate, formatPrice, WEEKDAYS, yen } from './filters.ts';
 import ProductPicker from './ProductPicker.tsx';
 
 type Props = {
@@ -101,6 +102,8 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
   onClose: () => void; onEditProduct: (id: string) => void; onEditStore: (id: string) => void;
 }) {
   const [text, setText] = useState(price ? String(price.amount) : '');
+  const sizeUnit = sizeUnitOf(product.unit);
+  const [sizeStr, setSizeStr] = useState(price?.size ? String(price.size) : '');
   // 新しく入れるときは店の前回の選択。今ある値段はその値段の選択のまま出す（違う意味に見せないため）
   const [mode, setMode] = useState<TaxMode>(price?.tax_mode ?? store.default_tax_mode);
   const [drafts, setDrafts] = useState<SaleDraft[]>(
@@ -108,7 +111,14 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
   );
   const [error, setError] = useState('');
   const amount = parseAmount(text);
+  const size = sizeUnit ? parseAmount(sizeStr) : null;
   const unit = product.unit === '100g' ? '/100g' : '';
+  // 量あたり：入れながら 100g などあたりを出し、今の値段と比べる
+  const per = sizeUnit && amount !== null && size !== null
+    ? comparable(yen({ amount, tax_mode: mode }, product), size, product.unit)
+    : null;
+  const before = sizeUnit && price ? comparable(yen(price, product), price.size, product.unit) : null;
+  const edited = !!price && (amount !== price.amount || size !== (price.size ?? null) || mode !== price.tax_mode);
   const used = new Set(drafts.map((d) => d.weekday));
   const nextDay = [2, 3, 4, 5, 6, 0, 1].find((d) => !used.has(d));
 
@@ -116,6 +126,10 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
     setDrafts((ds) => ds.map((d, j) => (j === i ? { ...d, ...patch } : d)));
 
   const save = async () => {
+    if (sizeUnit && size === null) {
+      setError('量を、1 以上の整数で入れてください');
+      return;
+    }
     if (amount === null) {
       setError('通常の値段を、1 以上の整数で入れてください');
       return;
@@ -129,7 +143,7 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
       }
       saleInputs.push({ weekday: d.weekday, amount: a, tax_mode: d.tax_mode });
     }
-    await savePrice(store, product, amount, mode);
+    await savePrice(store, product, { amount, tax_mode: mode, size });
     await saveSales(store, product, saleInputs);
     onClose();
   };
@@ -142,6 +156,18 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
 
   return (
     <form id="price-form" className="form-grid" onSubmit={(e) => { e.preventDefault(); void save(); }}>
+      {sizeUnit && (
+        <label>
+          量
+          <span className="size-line">
+            <input
+              type="text" inputMode="numeric" aria-label="量" value={sizeStr}
+              onChange={(e) => setSizeStr(e.target.value)}
+            />
+            <span className="size-unit">{sizeUnit.label}</span>
+          </span>
+        </label>
+      )}
       <label>
         通常の値段{unit && `（${unit}）`}
         <span className="amount-line">
@@ -155,9 +181,18 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
       {mode === 'excluded' && amount !== null && (
         <p className="note">→ 税込 {yen({ amount, tax_mode: 'excluded' }, product)}円</p>
       )}
+      {sizeUnit && per !== null && (
+        <div className="per-box" role="status" aria-label="量あたりの値段">
+          <b>{decimal1(per)}円/{sizeUnit.per}</b>
+          {price && before !== null && edited && (
+            <span className="note">いまの {formatPrice(price, product)}{compareText(per - before, sizeUnit.base === 1 ? `1${sizeUnit.label}` : sizeUnit.per)}</span>
+          )}
+        </div>
+      )}
       <p className="note">更新日：{price ? formatDate(price.price_updated_at) : '未登録'}</p>
 
       <h3>曜日セール</h3>
+      {sizeUnit && <p className="note">セールも同じ量{size !== null && `（${sizeText(size, product.unit)}）`}で比べます</p>}
       {drafts.map((d, i) => {
         const a = parseAmount(d.text);
         return (
@@ -202,4 +237,12 @@ function PriceFormInner({ store, product, price, sales, onClose, onEditProduct, 
       </div>
     </form>
   );
+}
+
+/** 今の値段との差：'より、100gあたり 16.7円安い' */
+function compareText(diff: number, per: string) {
+  if (Math.abs(diff) < 0.05) return `と、${per}あたり同じ`;
+  return diff < 0
+    ? <>より、<span className="cheaper">{per}あたり {decimal1(-diff)}円安い</span></>
+    : <>より、<span className="pricier">{per}あたり {decimal1(diff)}円高い</span></>;
 }

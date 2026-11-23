@@ -178,4 +178,22 @@ describe('buildPlan', () => {
     expect(() => find(plan, 'キャベツ')).toThrow();
     expect(find(plan, '牛乳').chosen).not.toBeNull();
   });
+
+  it('20. 量あたりの商品は 100gあたりで比べる。量のない値段は使わない', () => {
+    const kinako = { ...product('きなこ'), unit: 'size_g' as const };
+    const plan = buildPlan(base({
+      products: [...['牛乳'].map(product), kinako],
+      prices: [
+        { ...price('A', 'きなこ', 100), size: 100 },
+        { ...price('C', 'きなこ', 150), size: 180 },
+        price('B', 'きなこ', 50),
+      ],
+      sale_prices: [],
+      items: [item('きなこ')],
+    }));
+    const k = find(plan, 'きなこ');
+    expect(k.chosen?.store_id).toBe('C');
+    expect(k.chosen?.price).toBeCloseTo(83.33, 1);
+    expect(k.cheaper_elsewhere).toBeNull();
+  });
 });

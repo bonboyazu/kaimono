@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import type { DataRow } from './filters.ts';
-import { formatDate, formatPrice, formatSale } from './filters.ts';
+import { formatDate, formatPer, formatPrice, formatSale } from './filters.ts';
 import QuickPriceInput from './QuickPriceInput.tsx';
 
 type Props = { row: DataRow; quick: boolean; onOpen: () => void; onNext: () => void };
@@ -19,6 +19,7 @@ const PriceRow = forwardRef<HTMLInputElement, Props>(function PriceRow({ row, qu
     );
   }
   const sub = [
+    price ? formatPer(price, product) : null,
     ...sales.map((s) => formatSale(s, product)),
     price ? `更新 ${formatDate(price.price_updated_at)}` : null,
   ].filter(Boolean).join('　');
