@@ -1,5 +1,5 @@
-// 名前の欄の中の右はしに、肉のアイコン。押すと欄のすぐ下で、種類 → 部位 → カットを1段ずつ選ぶ
-import { useState, type ReactNode } from 'react';
+// 名前の欄の中の右はしに、× と肉のアイコン。肉を押すと欄のすぐ下で、種類 → 部位 → カットを1段ずつ選ぶ
+import { useRef, useState, type ReactNode } from 'react';
 import { MEAT_CUTS, MEAT_KINDS, meatName, meatParts, needsCut, type MeatKind } from '../../domain/meat.ts';
 
 /** Tabler Icons の meat（MIT License, https://tabler.io/icons） */
@@ -17,13 +17,40 @@ function MeatIcon() {
   );
 }
 
-/** children は名前の欄（input）。アイコンは欄の中に重ねる */
-export default function MeatField({ children, onPick }: { children: ReactNode; onPick: (name: string) => void }) {
+function ClearIcon() {
+  return (
+    <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+      <circle cx="10" cy="10" r="9" fill="currentColor" />
+      <path d="M6.8 6.8l6.4 6.4M13.2 6.8l-6.4 6.4" stroke="var(--color-surface)" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/**
+ * children は名前の欄（input）。欄の中の右はしに × と肉のアイコンを重ねる
+ * onChange：× と肉の組み立てで欄を変えるとき。onMeat：肉の組み立てで変えたときだけ（単位を 100gあたりにするなど）
+ */
+export default function MeatField({ value, onChange, onMeat, children }: {
+  value: string; onChange: (v: string) => void; onMeat?: (v: string) => void; children: ReactNode;
+}) {
   const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const setByMeat = (v: string) => {
+    onChange(v);
+    onMeat?.(v);
+  };
   return (
     <div className="meat-field">
-      <div className="name-box">
+      <div className={`name-box${value ? ' has-value' : ''}`} ref={box}>
         {children}
+        {value && (
+          <button
+            type="button" className="clear-btn" aria-label="欄を空にする"
+            onClick={() => { onChange(''); box.current?.querySelector('input')?.focus(); }}
+          >
+            <ClearIcon />
+          </button>
+        )}
         <button
           type="button" className="meat-btn" aria-label="肉の名前を組み立てる" aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
@@ -31,7 +58,7 @@ export default function MeatField({ children, onPick }: { children: ReactNode; o
           <MeatIcon />
         </button>
       </div>
-      {open && <MeatPanel onPick={(name) => { onPick(name); setOpen(false); }} />}
+      {open && <MeatPanel onName={setByMeat} onDone={() => setOpen(false)} />}
     </div>
   );
 }
@@ -48,39 +75,50 @@ function Grid({ label, options, wide, onPick }: {
   );
 }
 
-function MeatPanel({ onPick }: { onPick: (name: string) => void }) {
+/** 押すたびに欄へ名前を入れる。カットを押すか、カットのない部位を押すと閉じる。途中でやめてもよい */
+function MeatPanel({ onName, onDone }: { onName: (name: string) => void; onDone: () => void }) {
   const [kind, setKind] = useState<MeatKind | null>(null);
   const [part, setPart] = useState<string | null>(null);
 
   const pickKind = (k: string) => {
     const next = k as MeatKind;
-    // 合いびきは部位が1つだけなので、すぐ決まる
-    if (next === '合いびき') return onPick(meatName(next, 'ひき肉', null));
     setKind(next);
     setPart(null);
+    onName(meatName(next));
   };
   const pickPart = (p: string) => {
     if (!kind) return;
-    if (!needsCut(kind, p)) return onPick(meatName(kind, p, null));
-    setPart(p);
+    onName(meatName(kind, p));
+    if (needsCut(kind, p)) setPart(p);
+    else onDone();
+  };
+  const pickCut = (c: string) => {
+    if (!kind || !part) return;
+    onName(meatName(kind, part, c));
+    onDone();
   };
 
-  const step = !kind ? '種類' : !part ? '部位' : 'カット';
+  const step = !kind ? '種類' : !part ? (kind === 'ひき肉' ? '肉' : '部位') : 'カット';
   return (
     <div className="meat-panel">
       <div className="meat-crumbs">
-        {kind && <button type="button" aria-label={`種類を選び直す（${kind}）`} onClick={() => { setKind(null); setPart(null); }}>{kind}</button>}
+        {kind && (
+          <button type="button" aria-label={`種類を選び直す（${kind}）`} onClick={() => { setKind(null); setPart(null); onName(''); }}>
+            {kind}
+          </button>
+        )}
         {kind && <span aria-hidden="true">›</span>}
-        {part && <button type="button" aria-label={`部位を選び直す（${part}）`} onClick={() => setPart(null)}>{part}</button>}
+        {kind && part && (
+          <button type="button" aria-label={`部位を選び直す（${part}）`} onClick={() => { setPart(null); onName(meatName(kind)); }}>
+            {part}
+          </button>
+        )}
         {part && <span aria-hidden="true">›</span>}
-        <span className="note">{step}を選ぶ</span>
+        <span className="note">{step}を選ぶ{step === 'カット' ? '（なくてもよい）' : ''}</span>
       </div>
-      {kind && <p className="meat-preview">{meatName(kind, part ?? '', null)}…</p>}
-      {step === '種類' && <Grid label="種類" options={MEAT_KINDS} wide onPick={pickKind} />}
-      {step === '部位' && kind && <Grid label="部位" options={meatParts(kind)} onPick={pickPart} />}
-      {step === 'カット' && kind && part && (
-        <Grid label="カット" options={MEAT_CUTS} onPick={(c) => onPick(meatName(kind, part, c))} />
-      )}
+      {!kind && <Grid label="種類" options={MEAT_KINDS} wide onPick={pickKind} />}
+      {kind && !part && <Grid label="部位" options={meatParts(kind)} onPick={pickPart} />}
+      {kind && part && <Grid label="カット" options={MEAT_CUTS} onPick={pickCut} />}
     </div>
   );
 }

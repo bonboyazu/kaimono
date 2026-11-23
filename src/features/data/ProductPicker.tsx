@@ -43,7 +43,7 @@ export default function ProductPicker({ products, value, onChange }: {
   return (
     <div className="picker">
       <label className="picker-label" htmlFor={id}>商品</label>
-      <MeatField onPick={(name) => { setQuery(name); setError(''); }}>
+      <MeatField value={query} onChange={(v) => { setQuery(v); setError(''); }}>
         <input
           id={id} type="search" placeholder="商品の名前で探す" value={query}
           onChange={(e) => { setQuery(e.target.value); setError(''); }}

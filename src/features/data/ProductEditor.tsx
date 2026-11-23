@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { isMeatName } from '../../domain/meat.ts';
 import { similarNames } from '../../domain/similar.ts';
 import { useRow, useRows } from '../../data/hooks.ts';
 import type { Product, Unit } from '../../domain/types.ts';
@@ -46,7 +47,7 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
         <div className="name-field">
           <label htmlFor={nameId}>名前</label>
           {/* 肉で組み立てた名前は 100gあたりにする */}
-          <MeatField onPick={(n) => { setName(n); setUnit('100g'); }}>
+          <MeatField value={name} onChange={setName} onMeat={(n) => { if (isMeatName(n)) setUnit('100g'); }}>
             <input id={nameId} type="text" value={name} onChange={(e) => setName(e.target.value)} />
           </MeatField>
         </div>

@@ -76,7 +76,7 @@ export default function DataPage() {
             label="店で絞り込む" value={storeId} onChange={setStoreId}
             options={[{ value: '', label: 'すべての店' }, ...sortedStores.map((s) => ({ value: s.id, label: s.name }))]}
           />
-          <MeatField onPick={setQuery}>
+          <MeatField value={query} onChange={setQuery}>
             <input
               type="search" aria-label="商品名で絞り込む" placeholder="商品名" value={query}
               onChange={(e) => setQuery(e.target.value)}

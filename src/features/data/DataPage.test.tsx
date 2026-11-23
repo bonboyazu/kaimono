@@ -248,7 +248,6 @@ describe('データ一覧', () => {
     await user.click(within(sheet).getByRole('button', { name: '肉の名前を組み立てる' }));
     await user.click(within(sheet).getByRole('button', { name: '鶏' }));
     await user.click(within(sheet).getByRole('button', { name: '手羽元' }));
-    await user.click(within(sheet).getByRole('button', { name: 'そのまま' }));
     expect(within(sheet).getByLabelText('名前')).toHaveValue('手羽元');
     expect(within(sheet).getByRole('radio', { name: '100gあたり' })).toBeChecked();
   });
@@ -272,7 +271,7 @@ describe('データ一覧', () => {
     await pick(user, screen.getByRole('button', { name: '店で絞り込む' }), 'A店');
     await user.click(screen.getByRole('button', { name: '肉の名前を組み立てる' }));
     await user.click(screen.getByRole('button', { name: '牛' }));
-    expect(screen.getByText('牛…')).toBeInTheDocument();
+    expect(screen.getByLabelText('商品名で絞り込む')).toHaveValue('牛');
     await user.click(screen.getByRole('button', { name: 'こま' }));
     expect(screen.getByLabelText('商品名で絞り込む')).toHaveValue('牛こま');
     expect(await screen.findByLabelText('牛こまの値段')).toBeInTheDocument();
@@ -289,10 +288,44 @@ describe('データ一覧', () => {
     expect(screen.queryByRole('group', { name: '部位' })).toBeNull();
     await user.click(screen.getByRole('button', { name: '種類を選び直す（豚）' }));
     expect(screen.getByRole('group', { name: '種類' })).toBeInTheDocument();
+    expect(screen.getByLabelText('商品名で絞り込む')).toHaveValue('');
     await user.click(screen.getByRole('button', { name: '鶏' }));
     await user.click(screen.getByRole('button', { name: 'もも' }));
-    await user.click(screen.getByRole('button', { name: '唐揚げ用' }));
-    expect(screen.getByLabelText('商品名で絞り込む')).toHaveValue('鶏もも唐揚げ用');
-    expect(screen.getByRole('button', { name: '“鶏もも唐揚げ用”を足す' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '角切り' }));
+    expect(screen.getByLabelText('商品名で絞り込む')).toHaveValue('鶏もも角切り');
+    expect(screen.getByRole('button', { name: '“鶏もも角切り”を足す' })).toBeInTheDocument();
+  });
+
+  it('肉は押すたびに欄へ名前が入り、カットを選ばずにやめてもよい。ひき肉は種類の段から選ぶ', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await pick(user, screen.getByRole('button', { name: '店で絞り込む' }), 'A店');
+    const field = screen.getByLabelText('商品名で絞り込む');
+    await user.click(screen.getByRole('button', { name: '肉の名前を組み立てる' }));
+    expect(screen.getByRole('button', { name: '肉の名前を組み立てる' })).toHaveAttribute('aria-expanded', 'true');
+    await user.click(screen.getByRole('button', { name: '豚' }));
+    expect(field).toHaveValue('豚');
+    await user.click(screen.getByRole('button', { name: 'バラ' }));
+    expect(field).toHaveValue('豚バラ');
+    expect(screen.getByRole('button', { name: '“豚バラ”を足す' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '肉の名前を組み立てる' }));
+    expect(screen.queryByRole('group', { name: 'カット' })).toBeNull();
+    expect(field).toHaveValue('豚バラ');
+    await user.click(screen.getByRole('button', { name: '肉の名前を組み立てる' }));
+    await user.click(screen.getByRole('button', { name: 'ひき肉' }));
+    expect(screen.getByRole('group', { name: '部位' })).toHaveTextContent('牛豚鶏合いびき');
+    await user.click(screen.getByRole('button', { name: '合いびき' }));
+    expect(field).toHaveValue('合いびき肉');
+  });
+
+  it('欄に文字があると × が出て、押すと空になる', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const field = await screen.findByLabelText('商品名で絞り込む');
+    expect(screen.queryByRole('button', { name: '欄を空にする' })).toBeNull();
+    await user.type(field, '牛乳');
+    await user.click(screen.getByRole('button', { name: '欄を空にする' }));
+    expect(field).toHaveValue('');
+    expect(field).toHaveFocus();
   });
 });

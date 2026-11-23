@@ -127,6 +127,7 @@ describe('買うものを追加', () => {
     renderPage();
     await u.click(await screen.findByRole('button', { name: /買うものを追加/ }));
     await u.click(screen.getByRole('button', { name: '肉の名前を組み立てる' }));
+    await u.click(screen.getByRole('button', { name: 'ひき肉' }));
     await u.click(screen.getByRole('button', { name: '合いびき' }));
     expect(screen.getByLabelText('商品を探す')).toHaveValue('合いびき肉');
     await u.click(await screen.findByRole('button', { name: '“合いびき肉”を追加' }));
