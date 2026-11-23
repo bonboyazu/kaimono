@@ -2,14 +2,17 @@
 import { useState, type ReactNode } from 'react';
 import { MEAT_CUTS, MEAT_KINDS, meatName, meatParts, needsCut, type MeatKind } from '../../domain/meat.ts';
 
+/** Tabler Icons の meat（MIT License, https://tabler.io/icons） */
 function MeatIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
-      <ellipse cx="15" cy="9" rx="6.6" ry="5.1" transform="rotate(-45 15 9)" fill="currentColor" />
-      <path d="M12.4 7.8c.9-1.4 2.5-2.2 4-2.2" stroke="var(--meat-shine)" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-      <path d="M10.6 13.4 6.6 17.4" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
-      <circle cx="4.9" cy="17.3" r="2" fill="currentColor" />
-      <circle cx="6.7" cy="19.1" r="2" fill="currentColor" />
+    <svg
+      viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+    >
+      <path d="M13.62 8.382l1.966 -1.967a2 2 0 1 1 3.414 -1.415a2 2 0 1 1 -1.413 3.414l-1.82 1.821" />
+      <path d="M5.904 18.596c2.733 2.734 5.9 4 7.07 2.829c1.172 -1.172 -.094 -4.338 -2.828 -7.071c-2.733 -2.734 -5.9 -4 -7.07 -2.829c-1.172 1.172 .094 4.338 2.828 7.071z" />
+      <path d="M7.5 16l1 1" />
+      <path d="M12.975 21.425c3.905 -3.906 4.855 -9.288 2.121 -12.021c-2.733 -2.734 -8.115 -1.784 -12.02 2.121" />
     </svg>
   );
 }
