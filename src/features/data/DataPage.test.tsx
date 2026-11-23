@@ -201,7 +201,7 @@ describe('データ一覧', () => {
     const dialog = screen.getByRole('dialog');
     await pick(user, within(dialog).getByRole('button', { name: '店' }), 'A店');
     await user.type(within(dialog).getByLabelText('商品'), '豆板醤');
-    await user.click(within(dialog).getByRole('button', { name: '“豆板醤”を追加' }));
+    await user.click(within(dialog).getByRole('button', { name: '“豆板醤”を足す' }));
     await user.type(await within(dialog).findByLabelText('通常の値段'), '298');
     await user.click(within(dialog).getByRole('button', { name: '保存' }));
     expect(await screen.findByText('298円')).toBeInTheDocument();
@@ -215,13 +215,13 @@ describe('データ一覧', () => {
     await user.click(await screen.findByRole('button', { name: '足す' }));
     await user.click(screen.getByRole('button', { name: '値段' }));
     const dialog = screen.getByRole('dialog');
-    await user.click(within(dialog).getByRole('button', { name: '肉' }));
+    await user.click(within(dialog).getByRole('button', { name: '肉の名前を組み立てる' }));
     await user.click(within(within(dialog).getByRole('group', { name: '種類' })).getByRole('button', { name: '豚' }));
     await user.click(within(within(dialog).getByRole('group', { name: '部位' })).getByRole('button', { name: 'バラ' }));
     await user.click(within(within(dialog).getByRole('group', { name: 'カット' })).getByRole('button', { name: '薄切り' }));
     expect(within(dialog).getByLabelText('商品')).toHaveValue('豚バラ薄切り');
     expect(within(dialog).queryByRole('group', { name: '種類' })).toBeNull();
-    await user.click(within(dialog).getByRole('button', { name: '“豚バラ薄切り”を追加' }));
+    await user.click(within(dialog).getByRole('button', { name: '“豚バラ薄切り”を足す' }));
     await waitFor(async () => expect((await db.products.toArray()).find((p) => p.name === '豚バラ薄切り')?.unit).toBe('100g'));
   });
 
@@ -231,12 +231,12 @@ describe('データ一覧', () => {
     await user.click(await screen.findByRole('button', { name: '足す' }));
     await user.click(screen.getByRole('button', { name: '値段' }));
     const dialog = screen.getByRole('dialog');
-    await user.click(within(dialog).getByRole('button', { name: '肉' }));
+    await user.click(within(dialog).getByRole('button', { name: '肉の名前を組み立てる' }));
     await user.click(within(dialog).getByRole('button', { name: '牛' }));
     await user.click(within(dialog).getByRole('button', { name: 'こま' }));
     const candidates = within(dialog).getByRole('list', { name: '商品の候補' });
     expect(within(candidates).getByRole('button', { name: '牛こま' })).toBeInTheDocument();
-    expect(within(candidates).queryByRole('button', { name: /を追加/ })).toBeNull();
+    expect(within(candidates).queryByRole('button', { name: /を足す/ })).toBeNull();
   });
 
   it('商品を足すとき、「肉」で名前を入れると、単位が100gあたりになる', async () => {
@@ -245,11 +245,54 @@ describe('データ一覧', () => {
     await user.click(await screen.findByRole('button', { name: '足す' }));
     await user.click(screen.getByRole('button', { name: '商品' }));
     const sheet = screen.getByRole('dialog', { name: '商品を足す' });
-    await user.click(within(sheet).getByRole('button', { name: '肉' }));
+    await user.click(within(sheet).getByRole('button', { name: '肉の名前を組み立てる' }));
     await user.click(within(sheet).getByRole('button', { name: '鶏' }));
     await user.click(within(sheet).getByRole('button', { name: '手羽元' }));
-    await user.click(within(sheet).getByRole('button', { name: 'なし' }));
+    await user.click(within(sheet).getByRole('button', { name: 'そのまま' }));
     expect(within(sheet).getByLabelText('名前')).toHaveValue('手羽元');
     expect(within(sheet).getByRole('radio', { name: '100gあたり' })).toBeChecked();
+  });
+
+  it('店で絞り込んで名前を打ち、ない商品は一覧の「足す」で足すと、その行の値段の欄に移る', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await pick(user, screen.getByRole('button', { name: '店で絞り込む' }), 'A店');
+    await user.type(screen.getByLabelText('商品名で絞り込む'), '豆板醤');
+    expect(screen.queryByText('当てはまる商品がありません')).toBeNull();
+    await user.click(screen.getByRole('button', { name: '“豆板醤”を足す' }));
+    const input = await screen.findByLabelText('豆板醤の値段');
+    await waitFor(() => expect(input).toHaveFocus());
+    await user.type(input, '298{Enter}');
+    await waitFor(async () => expect((await db.prices.toArray()).map((p) => p.amount)).toEqual([298]));
+  });
+
+  it('一覧の名前の欄で肉を組み立てると、ある商品はそのまま値段の欄が出る', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await pick(user, screen.getByRole('button', { name: '店で絞り込む' }), 'A店');
+    await user.click(screen.getByRole('button', { name: '肉の名前を組み立てる' }));
+    await user.click(screen.getByRole('button', { name: '牛' }));
+    expect(screen.getByText('牛…')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'こま' }));
+    expect(screen.getByLabelText('商品名で絞り込む')).toHaveValue('牛こま');
+    expect(await screen.findByLabelText('牛こまの値段')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /を足す/ })).toBeNull();
+  });
+
+  it('肉は1段ずつ進み、上の印を押すと前の段に戻れる', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: '肉の名前を組み立てる' }));
+    await user.click(screen.getByRole('button', { name: '豚' }));
+    await user.click(screen.getByRole('button', { name: 'バラ' }));
+    expect(screen.getByRole('group', { name: 'カット' })).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: '部位' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: '種類を選び直す（豚）' }));
+    expect(screen.getByRole('group', { name: '種類' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '鶏' }));
+    await user.click(screen.getByRole('button', { name: 'もも' }));
+    await user.click(screen.getByRole('button', { name: '唐揚げ用' }));
+    expect(screen.getByLabelText('商品名で絞り込む')).toHaveValue('鶏もも唐揚げ用');
+    expect(screen.getByRole('button', { name: '“鶏もも唐揚げ用”を足す' })).toBeInTheDocument();
   });
 });

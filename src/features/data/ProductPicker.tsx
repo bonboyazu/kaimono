@@ -1,12 +1,12 @@
-// 値段を足すときの商品の欄。打って絞り込み、なければその場で足す。「肉」で名前を組み立てられる
+// 値段を足すときの商品の欄。打つと候補が縦に並び、なければその場で足す。欄の中の肉のアイコンで名前を組み立てられる
 import { useId, useState } from 'react';
 import { isMeatName } from '../../domain/meat.ts';
 import { normalizeName } from '../../domain/similar.ts';
 import type { Product } from '../../domain/types.ts';
-import { addProduct } from './actions.ts';
+import { addProductByName } from './actions.ts';
 import MeatField from './MeatField.tsx';
 
-const LIMIT = 30;
+const LIMIT = 8;
 
 export default function ProductPicker({ products, value, onChange }: {
   /** 消していない商品すべて（値段を入れない商品は候補に出さない） */
@@ -29,12 +29,12 @@ export default function ProductPicker({ products, value, onChange }: {
     );
   }
   const q = query.trim();
-  const hits = options.filter((o) => o.name.includes(q));
+  const hits = q ? options.filter((o) => o.name.includes(q)) : [];
   const same = q ? products.find((p) => normalizeName(p.name) === normalizeName(q)) : undefined;
 
   const create = async () => {
     try {
-      onChange(await addProduct({ name: q, unit: isMeatName(q) ? '100g' : 'piece', tax_rate: 8 }));
+      onChange(await addProductByName(q));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -49,17 +49,28 @@ export default function ProductPicker({ products, value, onChange }: {
           onChange={(e) => { setQuery(e.target.value); setError(''); }}
         />
       </MeatField>
-      <ul className="picker-list" aria-label="商品の候補">
-        {hits.slice(0, LIMIT).map((o) => (
-          <li key={o.id}><button type="button" onClick={() => onChange(o.id)}>{o.name}</button></li>
-        ))}
-        {hits.length > LIMIT && <li className="note">ほか {hits.length - LIMIT} 件。名前を打って絞り込む</li>}
-        {q && !same && (
-          <li><button type="button" className="add-new" onClick={() => void create()}>“{q}”を追加</button></li>
-        )}
-        {same?.unit === 'none' && <li className="note">「{same.name}」は値段を入れない商品です</li>}
-        {hits.length === 0 && !q && <li className="note">当てはまるものがありません</li>}
-      </ul>
+      {q && (
+        <ul className="add-list" aria-label="商品の候補">
+          {hits.slice(0, LIMIT).map((o) => (
+            <li key={o.id}>
+              <button type="button" aria-label={o.name} onClick={() => onChange(o.id)}>
+                <span>{o.name}</span>
+                <span className="note">{o.unit === '100g' ? '100gあたり' : '1つあたり'}</span>
+              </button>
+            </li>
+          ))}
+          {hits.length > LIMIT && <li className="note picker-more">ほか {hits.length - LIMIT} 件。名前を打って絞り込む</li>}
+          {!same && (
+            <li>
+              <button type="button" className="add-new" aria-label={`“${q}”を足す`} onClick={() => void create()}>
+                <span>＋ “{q}”を足す</span>
+                <span className="note">{isMeatName(q) ? '100gあたり' : '1つあたり'}</span>
+              </button>
+            </li>
+          )}
+          {same?.unit === 'none' && <li className="note picker-more">「{same.name}」は値段を入れない商品です</li>}
+        </ul>
+      )}
       {error && <p className="error">{error}</p>}
     </div>
   );

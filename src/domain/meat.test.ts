@@ -6,8 +6,8 @@ describe('meatName', () => {
     expect(meatName('豚', 'バラ', '薄切り')).toBe('豚バラ薄切り');
     expect(meatName('牛', 'ロース', 'かたまり')).toBe('牛ロースかたまり');
   });
-  it('カットが「なし」なら付けない', () => {
-    expect(meatName('鶏', 'もも', 'なし')).toBe('鶏もも');
+  it('カットが「そのまま」なら付けない', () => {
+    expect(meatName('鶏', 'もも', 'そのまま')).toBe('鶏もも');
     expect(meatName('豚', 'バラ', null)).toBe('豚バラ');
   });
   it('こま・ひき肉はカットを付けない', () => {
@@ -18,7 +18,7 @@ describe('meatName', () => {
     expect(meatName('合いびき', 'ひき肉', null)).toBe('合いびき肉');
   });
   it('手羽元・手羽先は「鶏」を付けない', () => {
-    expect(meatName('鶏', '手羽元', 'なし')).toBe('手羽元');
+    expect(meatName('鶏', '手羽元', 'そのまま')).toBe('手羽元');
     expect(meatName('鶏', '手羽先', '唐揚げ用')).toBe('手羽先唐揚げ用');
   });
 });

@@ -10,7 +10,7 @@ const PARTS: Record<MeatKind, string[]> = {
   合いびき: ['ひき肉'],
 };
 
-export const MEAT_CUTS = ['なし', 'かたまり', '薄切り', '切り落とし', '厚切り', 'ステーキ用', 'とんかつ用', 'しゃぶしゃぶ用', '角切り', '唐揚げ用'];
+export const MEAT_CUTS = ['そのまま', 'かたまり', '薄切り', '切り落とし', '厚切り', 'ステーキ用', 'とんかつ用', 'しゃぶしゃぶ用', '角切り', '唐揚げ用'];
 
 /** カットを選ばない部位 */
 const NO_CUT = ['こま', 'ひき肉'];
@@ -24,7 +24,7 @@ export const needsCut = (kind: MeatKind, part: string): boolean => kind !== '合
 export function meatName(kind: MeatKind, part: string, cut: string | null): string {
   if (kind === '合いびき') return '合いびき肉';
   const head = NO_KIND.includes(part) ? part : `${kind}${part}`;
-  return needsCut(kind, part) && cut && cut !== 'なし' ? `${head}${cut}` : head;
+  return needsCut(kind, part) && cut && cut !== 'そのまま' ? `${head}${cut}` : head;
 }
 
 const ALL = new Set(

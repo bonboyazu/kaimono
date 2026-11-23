@@ -1,10 +1,14 @@
 // データ一覧：店 × 商品の値段。絞り込み・編集・続けて入力
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRows } from '../../data/hooks.ts';
+import { isMeatName } from '../../domain/meat.ts';
+import { normalizeName } from '../../domain/similar.ts';
 import Header from '../../ui/Header.tsx';
 import Select from '../../ui/Select.tsx';
+import { addProductByName } from './actions.ts';
 import AddMenu from './AddMenu.tsx';
 import { buildDataRows } from './filters.ts';
+import MeatField from './MeatField.tsx';
 import PriceEditor from './PriceEditor.tsx';
 import PriceRow from './PriceRow.tsx';
 import ProductEditor from './ProductEditor.tsx';
@@ -37,6 +41,32 @@ export default function DataPage() {
   const quick = storeId !== '';
   const close = () => setOpen(null);
 
+  // 打った名前の商品がなければ、一覧の最後に「足す」を出す
+  const q = query.trim();
+  const same = q ? products?.find((p) => !p.deleted_at && normalizeName(p.name) === normalizeName(q)) : undefined;
+  const canAdd = !!q && !!products && !same && (stores?.length ?? 0) > 0;
+  const [error, setError] = useState('');
+  // 足した商品の値段の欄に移る。iPhone はキーボードを出したままにするため、押した直後に仮の欄へ移しておく
+  const holder = useRef<HTMLInputElement>(null);
+  const [focusId, setFocusId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!focusId) return;
+    const i = rows.findIndex((r) => r.product.id === focusId && r.store);
+    if (i < 0) return;
+    inputs.current[i]?.focus();
+    setFocusId(null);
+  }, [rows, focusId]);
+  const addByName = async () => {
+    if (quick) holder.current?.focus();
+    try {
+      const id = await addProductByName(q);
+      setError('');
+      if (quick) setFocusId(id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
   return (
     <>
       <Header title="データ" />
@@ -46,13 +76,15 @@ export default function DataPage() {
             label="店で絞り込む" value={storeId} onChange={setStoreId}
             options={[{ value: '', label: 'すべての店' }, ...sortedStores.map((s) => ({ value: s.id, label: s.name }))]}
           />
-          <input
-            type="search" aria-label="商品名で絞り込む" placeholder="商品名" value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+          <MeatField onPick={setQuery}>
+            <input
+              type="search" aria-label="商品名で絞り込む" placeholder="商品名" value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </MeatField>
         </div>
         {quick && <p className="note">値段の欄に打って確定すると、保存して次の商品に進みます</p>}
-        {stores && rows.length === 0 && (
+        {stores && rows.length === 0 && !canAdd && (
           <p className="note empty">
             {stores.length === 0
               ? '店がまだありません。右下の「＋」から店を足してください'
@@ -73,7 +105,18 @@ export default function DataPage() {
               onNext={() => inputs.current[i + 1]?.focus()}
             />
           ))}
+          {canAdd && (
+            <li>
+              <button type="button" className="add-row" aria-label={`“${q}”を足す`} onClick={() => void addByName()}>
+                <span>＋ “{q}”を足す</span>
+                <span className="note">{isMeatName(q) ? '100gあたり' : '1つあたり'}</span>
+              </button>
+            </li>
+          )}
         </ul>
+        {quick && same?.unit === 'none' && <p className="note">「{same.name}」は値段を入れない商品です</p>}
+        {error && <p className="error">{error}</p>}
+        <input ref={holder} className="focus-holder" inputMode="numeric" aria-hidden="true" tabIndex={-1} />
         <button type="button" className="fab" aria-label="足す" onClick={() => setOpen({ kind: 'add' })}>＋</button>
       </main>
 

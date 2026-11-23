@@ -2,6 +2,7 @@
 import { db as defaultDb } from '../../data/db.ts';
 import { createRow, patchRow, softDelete, type MutateContext } from '../../data/sync/mutate.ts';
 import { newId, priceId, salePriceId } from '../../domain/ids.ts';
+import { isMeatName } from '../../domain/meat.ts';
 import type { Price, Product, SalePrice, Store, TaxMode, Unit } from '../../domain/types.ts';
 
 const defaultCtx: MutateContext = { db: defaultDb, now: () => new Date().toISOString() };
@@ -76,6 +77,11 @@ export async function addProduct(
   const id = newId();
   await createRow('products', { id, name, unit: input.unit, tax_rate: input.tax_rate, is_preset: false }, ctx);
   return id;
+}
+
+/** 探す欄に打った名前で足す。肉の組み立てでできる名前は 100gあたり、ほかは 1つあたり。税率は食品 */
+export function addProductByName(name: string, ctx: MutateContext = defaultCtx): Promise<string> {
+  return addProduct({ name, unit: isMeatName(name) ? '100g' : 'piece', tax_rate: 8 }, ctx);
 }
 
 export async function updateProduct(

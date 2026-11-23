@@ -460,13 +460,30 @@ button.danger { color: var(--color-warn); }
 .bar { display: block; height: 100%; min-width: 4px; border-radius: 0 6px 6px 0; background: var(--color-primary); }
 .bar-count { font-variant-numeric: tabular-nums; color: var(--color-muted); font-size: 14px; }
 
-/* 名前の欄の横の「肉」。種類 → 部位 → カットを押して名前を組み立てる */
-.meat-field { display: flex; flex-direction: column; gap: var(--space-2); width: 100%; }
-.meat-row { display: flex; gap: var(--space-2); }
-.meat-row > input { flex: 1; min-width: 0; }
-.meat-toggle { flex-shrink: 0; padding: 0 var(--space-3); }
-.meat-toggle[aria-expanded='true'] { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-primary-text); }
-.meat-panel { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
-.meat-step { display: flex; flex-direction: column; gap: var(--space-1); }
+/* 名前の欄の中の右はしに肉のアイコン。押すと欄のすぐ下で、種類 → 部位 → カットを1段ずつ選ぶ */
+.meat-field { display: flex; flex-direction: column; gap: var(--space-2); width: 100%; color: var(--color-text); }
+.name-box { position: relative; }
+.name-box > input { width: 100%; padding-right: 48px; }
+.meat-btn {
+  position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
+  width: 42px; height: 40px; min-height: 0; padding: 0; border: none; border-radius: 8px; background: none;
+  display: flex; align-items: center; justify-content: center;
+  color: #b5523b; --meat-shine: var(--color-surface);
+}
+.meat-btn[aria-expanded='true'] { background: var(--color-primary); color: var(--color-primary-text); --meat-shine: var(--color-primary); }
+.meat-panel { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-bg); }
+.meat-crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-1); color: var(--color-muted); }
+.meat-crumbs button { min-height: 32px; padding: 0 var(--space-3); border-radius: 999px; font-size: 14px; background: #eef6f1; border-color: #cfe3d6; color: var(--color-primary); }
+.meat-preview { margin: 0; font-size: 20px; font-weight: 700; }
+.meat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+.meat-grid.wide { grid-template-columns: repeat(4, 1fr); }
+.meat-grid button { min-height: var(--tap); padding: 0 2px; font-size: 14px; white-space: nowrap; }
+.meat-grid.wide button { min-height: 52px; font-size: 16px; }
 .name-field { display: flex; flex-direction: column; gap: var(--space-1); font-size: 14px; color: var(--color-muted); }
-.name-field .meat-field { color: var(--color-text); }
+/* 探した名前の商品がないときの「足す」の行 */
+.add-row { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 52px; padding: 0 var(--space-3); border: none; border-radius: 0; background: transparent; color: var(--color-primary); font-weight: 600; text-align: left; }
+.add-row .note { font-weight: 400; }
+.add-list .picker-more { padding: var(--space-2) var(--space-3); }
+.add-list .add-new .note { font-weight: 400; }
+/* キーボードを出したまま次の欄に移るための仮の欄（見えない） */
+.focus-holder { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: none; padding: 0; font-size: 16px; pointer-events: none; }
